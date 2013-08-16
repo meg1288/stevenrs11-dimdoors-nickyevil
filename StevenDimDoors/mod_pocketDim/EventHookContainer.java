@@ -58,6 +58,10 @@ public class EventHookContainer
     			{    			
 	    			for (LinkData link:dimHelper.instance.getDimData(world.provider.dimensionId).getLinksInDim())
 	    			{
+	    				if (world.provider.dimensionId != link.locDimID)
+	    				{
+	    					continue;
+	    				}
 	    				if (!mod_pocketDim.blockRift.isBlockImmune(world, link.locXCoord, link.locYCoord, link.locZCoord))
 	    				{
 	        				dimHelper.getWorld(link.locDimID).setBlock(link.locXCoord, link.locYCoord, link.locZCoord, properties.RiftBlockID);
