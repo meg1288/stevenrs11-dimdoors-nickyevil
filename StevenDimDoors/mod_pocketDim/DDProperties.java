@@ -4,6 +4,7 @@ import java.io.File;
 
 import net.minecraftforge.common.Configuration;
 import StevenDimDoors.mod_pocketDim.ticking.MonolithSpawner;
+import StevenDimDoors.mod_pocketDim.world.GatewayGenerator;
 
 public class DDProperties
 {
@@ -55,7 +56,7 @@ public class DDProperties
 	 * Crafting Flags
 	 */
 	
-	public final boolean CraftingDimensionaDoorAllowed;
+	public final boolean CraftingDimensionalDoorAllowed;
 	public final boolean CraftingWarpDoorAllowed;
 	public final boolean CraftingRiftSignatureAllowed;
 	public final boolean CraftingRiftRemoverAllowed;
@@ -128,7 +129,7 @@ public class DDProperties
 		Configuration config = new Configuration(configFile);
 		config.load();
 
-		CraftingDimensionaDoorAllowed = config.get(CATEGORY_CRAFTING, "Allow Crafting Dimensional Door", true).getBoolean(true);
+		CraftingDimensionalDoorAllowed = config.get(CATEGORY_CRAFTING, "Allow Crafting Dimensional Door", true).getBoolean(true);
 		CraftingWarpDoorAllowed = config.get(CATEGORY_CRAFTING, "Allow Crafting Warp Door", true).getBoolean(true);
 		CraftingUnstableDoorAllowed = config.get(CATEGORY_CRAFTING, "Allow Crafting Unstable Door", true).getBoolean(true);
 		CraftingTransTrapdoorAllowed = config.get(CATEGORY_CRAFTING, "Allow Crafting Transdimensional Trapdoor", true).getBoolean(true);
@@ -211,11 +212,11 @@ public class DDProperties
 				"spawn in a given Limbo chunk. The default chance is 28.").getInt();
 		
 		ClusterGenerationChance = config.get(Configuration.CATEGORY_GENERAL, "Cluster Generation Chance", 3,
-				"Sets the chance (out of " + RiftGenerator.MAX_CLUSTER_GENERATION_CHANCE + ") that a cluster of rifts will " +
+				"Sets the chance (out of " + GatewayGenerator.MAX_CLUSTER_GENERATION_CHANCE + ") that a cluster of rifts will " +
 				"generate in a given chunk. The default chance is 3.").getInt();
 
 		GatewayGenerationChance = config.get(Configuration.CATEGORY_GENERAL, "Gateway Generation Chance", 10,
-				"Sets the chance (out of " + RiftGenerator.MAX_GATEWAY_GENERATION_CHANCE + ") that a Rift Gateway will " +
+				"Sets the chance (out of " + GatewayGenerator.MAX_GATEWAY_GENERATION_CHANCE + ") that a Rift Gateway will " +
 				"generate in a given chunk. The default chance is 10.").getInt();
 		
 		RiftSpreadModifier = config.get(Configuration.CATEGORY_GENERAL, "Rift Spread Modifier", 3,

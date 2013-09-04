@@ -1,4 +1,4 @@
-package StevenDimDoors.mod_pocketDim;
+package StevenDimDoors.mod_pocketDim.world;
 
 import java.util.Random;
 
@@ -7,13 +7,16 @@ import net.minecraft.block.material.Material;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.common.DimensionManager;
-import StevenDimDoors.mod_pocketDim.helpers.dimHelper;
-import StevenDimDoors.mod_pocketDim.items.itemDimDoor;
-import StevenDimDoors.mod_pocketDim.world.LimboProvider;
-import StevenDimDoors.mod_pocketDim.world.PocketProvider;
+import StevenDimDoors.mod_pocketDim.DDProperties;
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
+import StevenDimDoors.mod_pocketDim.core.DimLink;
+import StevenDimDoors.mod_pocketDim.core.LinkTypes;
+import StevenDimDoors.mod_pocketDim.core.NewDimData;
+import StevenDimDoors.mod_pocketDim.core.PocketManager;
+import StevenDimDoors.mod_pocketDim.items.ItemDimensionalDoor;
 import cpw.mods.fml.common.IWorldGenerator;
 
-public class RiftGenerator implements IWorldGenerator
+public class GatewayGenerator implements IWorldGenerator
 {
 	public static final int MAX_GATEWAY_GENERATION_CHANCE = 10000;
 	public static final int MAX_CLUSTER_GENERATION_CHANCE = 10000;
@@ -27,12 +30,12 @@ public class RiftGenerator implements IWorldGenerator
 	private static final int NETHER_CHANCE_CORRECTION = 4;
 	private static final int OVERWORLD_DIMENSION_ID = 0;
 	private static final int NETHER_DIMENSION_ID = -1;
-	private static DDProperties properties = null;
 
-	public RiftGenerator()
+	private final DDProperties properties;
+	
+	public GatewayGenerator(DDProperties properties)
 	{
-		if (properties == null)
-			properties = DDProperties.instance();
+		this.properties = properties;
 	}
 
 	@Override
@@ -46,7 +49,7 @@ public class RiftGenerator implements IWorldGenerator
 			return;
 		}
 		//This check prevents a crash related to superflat worlds not loading World 0
-		if (dimHelper.getWorld(OVERWORLD_DIMENSION_ID) == null)
+		if (DimensionManager.getWorld(OVERWORLD_DIMENSION_ID) == null)
 		{
 			return;
 		}
@@ -55,7 +58,8 @@ public class RiftGenerator implements IWorldGenerator
 		int attempts;
 		int correction;
 		boolean valid;
-		LinkData link;
+		DimLink link;
+		NewDimData dimension;
 		
 		//Check if we're generating things in the Nether
 		if (world.provider.dimensionId == NETHER_DIMENSION_ID)
@@ -75,6 +79,7 @@ public class RiftGenerator implements IWorldGenerator
 		if (random.nextInt(MAX_CLUSTER_GENERATION_CHANCE) < properties.ClusterGenerationChance)
 		{
 			link = null;
+			dimension = null;
 			do
 			{
 				//Pick a random point on the surface of the chunk
@@ -89,16 +94,15 @@ public class RiftGenerator implements IWorldGenerator
 					world.getBlockId(x, y - 1, z) != Block.bedrock.blockID &&
 					world.getBlockId(x, y - 2, z) != Block.bedrock.blockID)
 				{
-					//Create a link. If this is the first time, create a dungeon pocket and create a two-way link.
-					//Otherwise, create a one-way link and connect to the destination of the first link.
+					//Create a link. If this is not the first time, create a child link and connect it to the first link.
 					if (link == null)
 					{
-						link = new LinkData(world.provider.dimensionId, 0,  x, y + 1, z, x, y + 1, z, true, 0);
-						link = dimHelper.instance.createPocket(link, true, true);
+						dimension = PocketManager.getDimensionData(world);
+						link = dimension.createLink(x, y + 1, z, LinkTypes.POCKET);
 					}
 					else
 					{
-						link = dimHelper.instance.createLink(link.locDimID, link.destDimID, x, y + 1, z, link.destXCoord, link.destYCoord, link.destZCoord);
+						dimension.createChildLink(x, y + 1, z, link);
 					}
 				}
 			}
@@ -127,23 +131,22 @@ public class RiftGenerator implements IWorldGenerator
 			//Build the gateway if we found a valid location
 			if (valid)
 			{
-				//Create a two-way link between the upper block of the gateway and a pocket dimension
-				//That pocket dimension is where we'll start a dungeon!
-				link = new LinkData(world.provider.dimensionId, 0,  x, y + 1, z, x, y + 1, z, true, 0);
-				link = dimHelper.instance.createPocket(link, true, true);
+				//Create a partial link to a dungeon.
+				dimension = PocketManager.getDimensionData(world);
+				link = dimension.createLink(x, y + 1, z, LinkTypes.DUNGEON);
 
 				//If the current dimension isn't Limbo, build a Rift Gateway out of Stone Bricks
-				if (world.provider.dimensionId != properties.LimboDimensionID)
+				if (dimension.id() != properties.LimboDimensionID)
 				{
 					createStoneGateway(world, x, y, z, random);
 				}
 				else
 				{
-					createLimboGateway(world, x, y, z);
+					createLimboGateway(world, x, y, z, properties.LimboBlockID);
 				}
 				
 				//Place the shiny transient door into a dungeon
-				itemDimDoor.placeDoorBlock(world, x, y + 1, z, 0, mod_pocketDim.transientDoor);
+				ItemDimensionalDoor.placeDoorBlock(world, x, y + 1, z, 0, mod_pocketDim.transientDoor);
 			}
 		}
 	}
@@ -188,11 +191,10 @@ public class RiftGenerator implements IWorldGenerator
 		world.setBlock(x, y, z + 1, blockID, 0, 3);
 	}
 	
-	private static void createLimboGateway(World world, int x, int y, int z)
+	private static void createLimboGateway(World world, int x, int y, int z, int blockID)
 	{
 		//Build the gateway out of Unraveled Fabric. Since nearly all the blocks in Limbo are of
 		//that type, there is no point replacing the ground.
-		final int blockID = properties.LimboBlockID;
 		world.setBlock(x, y + 2, z + 1, blockID, 0, 3);
 		world.setBlock(x, y + 2, z - 1, blockID, 0, 3);
 		
