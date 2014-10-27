@@ -1,5 +1,6 @@
 package StevenDimDoors.mod_pocketDim.blocks;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import cpw.mods.fml.relauncher.Side;
@@ -16,6 +17,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import StevenDimDoors.mod_pocketDim.mod_pocketDim;
 import StevenDimDoors.mod_pocketDim.core.DDTeleporter;
@@ -80,7 +82,8 @@ public class TransTrapdoor extends BlockTrapDoor implements IDimDoor, ITileEntit
 		}
 		return false;
 	}
-	
+
+	@Override
 	public boolean onBlockActivated(World par1World, int par2, int par3, int par4, EntityPlayer par5EntityPlayer, int par6, float par7, float par8, float par9)
     {
 		if(this.checkCanOpen(par1World, par2, par3, par4, par5EntityPlayer))
@@ -90,27 +93,26 @@ public class TransTrapdoor extends BlockTrapDoor implements IDimDoor, ITileEntit
 		return false;
     }
 
-    public void onPoweredBlockChange(World par1World, int par2, int par3, int par4, boolean par5)
+	@Override
+    public void func_150120_a(World par1World, int par2, int par3, int par4, boolean par5)
     {
     	if(this.checkCanOpen(par1World, par2, par3, par4))
-    	{//TODO 1.7
-//    		super.onPoweredBlockChange(par1World, par2, par3, par4, par5);//onPoweredBlockChange
+    	{
+    		super.func_150120_a(par1World, par2, par3, par4, par5);//onPoweredBlockChange
     	}
     }
 	@Override
 	public void enterDimDoor(World world, int x, int y, int z, Entity entity) 
 	{
-		//TODO 1.7
-		/*
-		if (!world.isRemote && isTrapdoorOpen(world.getBlockMetadata(x, y, z)))
+		if (!world.isRemote && func_150118_d(world.getBlockMetadata(x, y, z)))//isTrapDoorOpen
 		{
 			DimLink link = PocketManager.getLink(x, y, z, world);
 			if (link != null)
 			{
 				DDTeleporter.traverseDimDoor(world, link, entity,this);
 			}
-			super.onPoweredBlockChange(world, x, y, z, false);
-		}*/
+			super.func_150120_a(world, x, y, z, false);//onPoweredBlockChange
+		}
 	}	
 
 	@Override
@@ -140,20 +142,20 @@ public class TransTrapdoor extends BlockTrapDoor implements IDimDoor, ITileEntit
 		}
 	}
 
-	//TODO 1.7
-	/*
 	@Override
 	@SideOnly(Side.CLIENT)
-	public Item idPicked(World world, int x, int y, int z)
+	public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z)
 	{
-		return this.getDoorItem();
+		return new ItemStack(this.getDoorItem(), 1);
 	}
 	
 	@Override
-	public int idDropped(int metadata, Random random, int fortuneLevel)
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune)
     {
-        return this.getDrops();
-    }*/
+		ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
+        drops.add(new ItemStack(this.getDrops(), 1));
+		return drops;
+    }
 	
 	@Override
 	public net.minecraft.item.Item getDoorItem()

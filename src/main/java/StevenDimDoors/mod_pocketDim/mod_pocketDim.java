@@ -1,6 +1,9 @@
 package StevenDimDoors.mod_pocketDim;
 
 import java.io.File;
+
+import StevenDimDoors.mod_pocketDim.ticking.*;
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
@@ -56,10 +59,6 @@ import StevenDimDoors.mod_pocketDim.items.ItemUnstableDoor;
 import StevenDimDoors.mod_pocketDim.items.ItemWarpDoor;
 import StevenDimDoors.mod_pocketDim.items.ItemWorldThread;
 import StevenDimDoors.mod_pocketDim.items.itemRiftRemover;
-import StevenDimDoors.mod_pocketDim.ticking.CustomLimboPopulator;
-import StevenDimDoors.mod_pocketDim.ticking.LimboDecayScheduler;
-import StevenDimDoors.mod_pocketDim.ticking.MobMonolith;
-import StevenDimDoors.mod_pocketDim.ticking.RiftRegenerator;
 import StevenDimDoors.mod_pocketDim.tileentities.TileEntityDimDoor;
 import StevenDimDoors.mod_pocketDim.tileentities.TileEntityDimDoorGold;
 import StevenDimDoors.mod_pocketDim.tileentities.TileEntityRift;
@@ -149,6 +148,7 @@ public class mod_pocketDim
 	private static LimboDecayScheduler limboDecayScheduler;
 	private static LimboDecay limboDecay;
 	private static EventHookContainer hooks;
+	private static ServerTickHandler serverTickHandler = new ServerTickHandler();
 	
 	//TODO this is a temporary workaround for saving data
 	private String currrentSaveRootDirectory;
@@ -184,10 +184,10 @@ public class mod_pocketDim
 
 	@EventHandler
 	public void onInitialization(FMLInitializationEvent event)
-	{//TODO 1.7
+	{
 		// Initialize ServerTickHandler instance
-//		serverTickHandler = new ServerTickHandler();
-//		TickRegistry.registerTickHandler(serverTickHandler, Side.SERVER);
+		serverTickHandler = new ServerTickHandler();
+		FMLCommonHandler.instance().bus().register(serverTickHandler);
 		
 		// Initialize LimboDecay instance: required for BlockLimbo
 		limboDecay = new LimboDecay(properties);
@@ -223,6 +223,21 @@ public class mod_pocketDim
 		itemRiftBlade = (new ItemRiftBlade(properties)).setUnlocalizedName("ItemRiftBlade");
 		itemStabilizedRiftSignature = (new ItemStabilizedRiftSignature()).setUnlocalizedName("itemStabilizedRiftSig");
 		itemWorldThread = (new ItemWorldThread()).setUnlocalizedName("itemWorldThread");
+
+		GameRegistry.registerItem(itemDDKey, "itemDDKey");
+		GameRegistry.registerItem(itemQuartzDoor, "quartzDoor");
+		GameRegistry.registerItem(itemPersonalDoor, "personalDoor");
+		GameRegistry.registerItem(itemGoldenDoor, "goldenDoor");
+		GameRegistry.registerItem(itemGoldenDimensionalDoor, "goldenDimDoor");
+		GameRegistry.registerItem(itemDimensionalDoor, "dimDoor");
+		GameRegistry.registerItem(itemWarpDoor, "warpDoor");
+		GameRegistry.registerItem(itemRiftSignature, "riftSignature");
+		GameRegistry.registerItem(itemRiftRemover, "riftRemover");
+		GameRegistry.registerItem(itemStableFabric, "stableFabric");
+		GameRegistry.registerItem(itemUnstableDoor, "unstabledoor");
+		GameRegistry.registerItem(itemRiftBlade, "riftBlade");
+		GameRegistry.registerItem(itemStabilizedRiftSignature, "stabilizedRiftSignature");
+		GameRegistry.registerItem(itemWorldThread, "worldThread");
 		
 		// Check if other biomes have been registered with the same IDs we want. If so, crash Minecraft
 		// to notify the user instead of letting it pass and conflicting with Biomes o' Plenty.
@@ -232,20 +247,20 @@ public class mod_pocketDim
 		mod_pocketDim.limboBiome = (new BiomeGenLimbo(properties.LimboBiomeID));
 		mod_pocketDim.pocketBiome = (new BiomeGenPocket(properties.PocketBiomeID));
 
-		GameRegistry.registerBlock(quartzDoor, "Quartz Door");
-		GameRegistry.registerBlock(personalDimDoor, "Personal Dimensional Door");
-		GameRegistry.registerBlock(goldenDoor, "Golden Door");
-		GameRegistry.registerBlock(goldenDimensionalDoor, "Golden Dimensional Door");
-		GameRegistry.registerBlock(unstableDoor, "Unstable Door");
-		GameRegistry.registerBlock(warpDoor, "Warp Door");
+		GameRegistry.registerBlock(quartzDoor, "Quartz_Door");
+		GameRegistry.registerBlock(personalDimDoor, "Personal_Dimensional_Door");
+		GameRegistry.registerBlock(goldenDoor, "Golden_Door");
+		GameRegistry.registerBlock(goldenDimensionalDoor, "Golden_Dimensional_Door");
+		GameRegistry.registerBlock(unstableDoor, "Unstable_Door");
+		GameRegistry.registerBlock(warpDoor, "Warp_Door");
 		GameRegistry.registerBlock(blockRift, "Rift");
-		GameRegistry.registerBlock(blockLimbo, "Unraveled Fabric");
-		GameRegistry.registerBlock(dimensionalDoor, "Dimensional Door");
-		GameRegistry.registerBlock(transTrapdoor,"Transdimensional Trapdoor");
-		GameRegistry.registerBlock(blockDimWallPerm, "Fabric of RealityPerm");
+		GameRegistry.registerBlock(blockLimbo, "Unraveled_Fabric");
+		GameRegistry.registerBlock(dimensionalDoor, "Dimensional_Door");
+		GameRegistry.registerBlock(transTrapdoor,"Transdimensional_Trapdoor");
+		GameRegistry.registerBlock(blockDimWallPerm, "Fabric_of_RealityPerm");
 		GameRegistry.registerBlock(transientDoor, "transientDoor");
 
-		GameRegistry.registerBlock(blockDimWall, ItemBlockDimWall.class, "Fabric of Reality");
+		GameRegistry.registerBlock(blockDimWall, ItemBlockDimWall.class, "Fabric_of_Reality");
 
 		if (!DimensionManager.registerProviderType(properties.PocketProviderID, PocketProvider.class, false))
 			throw new IllegalStateException("There is a provider ID conflict between PocketProvider from Dimensional Doors and another provider type. Fix your configuration!");
@@ -305,13 +320,11 @@ public class mod_pocketDim
 
 		CraftingManager.registerRecipes(properties);
 		CraftingManager.registerDispenserBehaviors();
-		//TODO 1.7
-//		GameRegistry.registerCraftingHandler(new CraftingManager());
+		FMLCommonHandler.instance().bus().register(new CraftingManager());
 
 		DungeonHelper.initialize();
 		gatewayGenerator = new GatewayGenerator(properties);
-		//TODO 1.7
-//		GameRegistry.registerWorldGenerator(mod_pocketDim.gatewayGenerator);
+		GameRegistry.registerWorldGenerator(mod_pocketDim.gatewayGenerator, 9);
 
 		// Register loot chests
 		DDLoot.registerInfo(properties);
@@ -371,8 +384,7 @@ public class mod_pocketDim
 			
 			// Unregister all tick receivers from serverTickHandler to avoid leaking
 			// scheduled tasks between single-player game sessions
-			//TODO 1.7
-//			serverTickHandler.unregisterReceivers();
+			serverTickHandler.unregisterReceivers();
 			spawner = null;
 			riftRegenerator = null;
 			limboDecayScheduler = null;
@@ -396,12 +408,10 @@ public class mod_pocketDim
 		
 		// Register regular tick receivers
 		// CustomLimboPopulator should be initialized before any provider instances are created
-		//TODO 1.7
-		/*
 		spawner = new CustomLimboPopulator(serverTickHandler, properties);
 		riftRegenerator = new RiftRegenerator(serverTickHandler, blockRift);
 		limboDecayScheduler = new LimboDecayScheduler(serverTickHandler, limboDecay);
-		*/
+
 		hooks.setSessionFields(worldProperties, riftRegenerator);
 	}
 

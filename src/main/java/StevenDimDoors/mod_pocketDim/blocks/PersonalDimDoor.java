@@ -15,7 +15,6 @@ public class PersonalDimDoor extends BaseDimDoor
 	public PersonalDimDoor(Material material, DDProperties properties)
 	{
 		super(material, properties);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

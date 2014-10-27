@@ -2,11 +2,17 @@ package StevenDimDoors.mod_pocketDim;
 
 
 import StevenDimDoors.mod_pocketDim.config.DDProperties;
+import StevenDimDoors.mod_pocketDim.core.DDLock;
+import StevenDimDoors.mod_pocketDim.items.ItemDDKey;
 import StevenDimDoors.mod_pocketDim.items.behaviors.DispenserBehaviorStabilizedRS;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.BlockDispenser;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
@@ -21,12 +27,19 @@ public class CraftingManager
 			switch (properties.WorldThreadRequirementLevel)
 			{
 				case 1:
-					GameRegistry.addShapelessRecipe(new ItemStack(mod_pocketDim.itemStableFabric, 1),
-						Items.ender_pearl, mod_pocketDim.itemWorldThread);
+					GameRegistry.addShapelessRecipe(
+						new ItemStack(mod_pocketDim.itemStableFabric, 1),
+						Items.ender_pearl,
+						mod_pocketDim.itemWorldThread
+					);
 					break;
 				case 2:
-					GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemStableFabric, 1),
-						"yxy", 'x', Items.ender_pearl, 'y', mod_pocketDim.itemWorldThread);
+					GameRegistry.addRecipe(
+						new ItemStack(mod_pocketDim.itemStableFabric, 1),
+						"yxy",
+						'x', Items.ender_pearl,
+						'y', mod_pocketDim.itemWorldThread
+					);
 					break;
 				case 3:
 					GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemStableFabric, 1),
@@ -116,49 +129,40 @@ public class CraftingManager
 		
 	}
 
-	//TODO 1.7
-	/*
-	@Override
-	public void onCrafting(EntityPlayer player, ItemStack item, IInventory craftMatrix)
-	{
-		if(item.getItem() instanceof ItemDDKey)
-		{
-			ItemDDKey keyItem = (ItemDDKey) item.getItem();
+	@SubscribeEvent
+	public void onCrafting(PlayerEvent.ItemCraftedEvent event) {
+		if(event.crafting.getItem() instanceof ItemDDKey) {
+			ItemDDKey keyItem = (ItemDDKey) event.crafting.getItem();
 			ItemStack topKey = null;
 			ItemStack bottomKey = null;
 			int topKeySlot = 0;
-			
-			for(int i = 0; i<craftMatrix.getSizeInventory();i++)
-			{
-				ItemStack slot = craftMatrix.getStackInSlot(i);
-				if(slot!=null)
-				{
-					if(topKey==null)
-					{
+
+			for(int i = 0; i < event.craftMatrix.getSizeInventory(); i++) {
+				ItemStack slot = event.craftMatrix.getStackInSlot(i);
+				if(slot != null) {
+					if (topKey == null) {
 						topKey = slot;
 						topKeySlot = i;
 					}
-					else 
+					else
 					{
 						bottomKey = slot;
 						break;
 					}
 				}
 			}
+
 			DDLock.addKeys(bottomKey, DDLock.getKeys(topKey));
-			item.setTagCompound(bottomKey.getTagCompound());
-			player.inventory.addItemStackToInventory(topKey);
+			event.crafting.setTagCompound(bottomKey.getTagCompound());
+			event.player.inventory.addItemStackToInventory(topKey);//TODO  1.7 is this needed?
 		}
-		
 	}
 
-	@Override
-	public void onSmelting(EntityPlayer player, ItemStack item)
+	@SubscribeEvent
+	public void onSmelting(PlayerEvent.ItemSmeltedEvent event)
 	{
-		// TODO Auto-generated method stub
-		
 	}
-*/
+
 	public static void registerDispenserBehaviors()
 	{
 		// Register the dispenser behaviors for certain DD items

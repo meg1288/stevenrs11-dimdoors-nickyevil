@@ -87,8 +87,7 @@ public class BlockDimWallPerm extends Block
 						if (Math.abs(xc) + Math.abs(zc) < random.nextInt(3) + 2 ||
 							Math.abs(xc) + Math.abs(zc) < random.nextInt(3) + 3)
 						{
-							//TODO 1.7
-//							overworld.setBlock(destinationX + xc, destinationY - 1, destinationZ + zc, properties.LimboBlockID);
+							overworld.setBlock(destinationX + xc, destinationY - 1, destinationZ + zc, mod_pocketDim.blockLimbo);
 						}
 					}
 				}

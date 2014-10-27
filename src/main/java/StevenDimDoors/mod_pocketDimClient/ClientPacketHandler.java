@@ -28,7 +28,6 @@ public class ClientPacketHandler
 	@Override
 	public void onPacketData(INetworkManager manager, Packet250CustomPayload packet, Player player)
 	{
-		// TODO: Is this even necessary? I'm not convinced we can receive packets from other channels anyway!
 		if (!packet.channel.equals(PacketConstants.CHANNEL_NAME))
 			return;		
 	

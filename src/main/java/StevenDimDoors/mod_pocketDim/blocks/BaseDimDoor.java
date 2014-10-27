@@ -19,13 +19,16 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public abstract class BaseDimDoor extends BlockDoor implements IDimDoor, ITileEntityProvider
@@ -374,25 +377,26 @@ public abstract class BaseDimDoor extends BlockDoor implements IDimDoor, ITileEn
 	/**
 	 * only called by clickMiddleMouseButton , and passed to inventory.setCurrentItem (along with isCreative)
 	 */
-	//TODO 1.7
-/*	@Override
+	@Override
 	@SideOnly(Side.CLIENT)
-	public int idPicked(World world, int x, int y, int z)
+	public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z)
 	{
-		return this.getDoorItem();
+		return new ItemStack(this.getDoorItem(), 1);
 	}
-*/
+
 
     /**
      * Returns the ID of the items to drop on destruction.
      */
-//TODO 1.7
-/*    @Override
-	public Item getItemDropped(int metadata, Random random, int fortune)
+    @Override
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune)
     {
-        return isUpperDoorBlock(metadata) ? 0 : this.getDrops();
+		ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
+        if(isUpperDoorBlock(metadata))
+			drops.add(new ItemStack(this.getDrops(), 1));
+		return drops;
     }
-*/
+
 	@Override
 	public TileEntity createNewTileEntity(World world, int metadata)
 	{

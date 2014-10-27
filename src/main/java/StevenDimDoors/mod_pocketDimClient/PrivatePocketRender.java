@@ -145,14 +145,12 @@ public class PrivatePocketRender implements ISimpleBlockRenderingHandler
 	@Override
 	public boolean shouldRender3DInInventory(int modelid)
 	{
-		// TODO Auto-generated method stub
 		return true;
 	}
 
 	@Override
 	public int getRenderId()
 	{
-		// TODO Auto-generated method stub
 		return renderID;
 	}
 

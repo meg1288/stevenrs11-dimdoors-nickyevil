@@ -106,7 +106,6 @@ public class PocketManager
 		@Override
 		public void update(ClientDimData message)
 		{
-			// TODO Auto-generated method stub
 		}
 	}
 
@@ -762,7 +761,6 @@ public class PocketManager
 
 	public static HashMap<String, NewDimData> getPersonalPocketMapping()
 	{
-		// TODO Auto-generated method stub
 		return personalPocketsMapping;
 	}
 }
