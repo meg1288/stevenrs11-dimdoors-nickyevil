@@ -1,5 +1,6 @@
 package StevenDimDoors.mod_pocketDim.world.gateways;
 
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemDoor;
 import net.minecraft.world.World;
 import StevenDimDoors.mod_pocketDim.mod_pocketDim;
@@ -18,7 +19,7 @@ public class GatewayLimbo extends BaseGateway
 	@Override
 	public boolean generate(World world, int x, int y, int z) 
 	{
-		int blockID = mod_pocketDim.blockLimbo.blockID;
+		Block blockID = mod_pocketDim.blockLimbo;
 		// Build the gateway out of Unraveled Fabric. Since nearly all the blocks in Limbo are of
 		// that type, there is no point replacing the ground.
 		world.setBlock(x, y + 3, z + 1, blockID, 0, 3);

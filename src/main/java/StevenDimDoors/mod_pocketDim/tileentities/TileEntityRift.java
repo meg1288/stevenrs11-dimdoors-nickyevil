@@ -1,27 +1,23 @@
 package StevenDimDoors.mod_pocketDim.tileentities;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.monster.EntityEnderman;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.INetworkManager;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.Packet132TileEntityData;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.MathHelper;
 import StevenDimDoors.mod_pocketDim.ServerPacketHandler;
-import StevenDimDoors.mod_pocketDim.mod_pocketDim;
 import StevenDimDoors.mod_pocketDim.config.DDProperties;
 import StevenDimDoors.mod_pocketDim.core.DimLink;
 import StevenDimDoors.mod_pocketDim.core.NewDimData;
 import StevenDimDoors.mod_pocketDim.core.PocketManager;
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
 import StevenDimDoors.mod_pocketDim.util.Point4D;
 import StevenDimDoors.mod_pocketDim.util.l_systems.LSystem;
 import StevenDimDoors.mod_pocketDim.util.l_systems.LSystem.PolygonStorage;
 import StevenDimDoors.mod_pocketDim.watcher.ClientLinkData;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.EntityEnderman;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
+
+import java.util.List;
+import java.util.Random;
 
 public class TileEntityRift extends DDTileEntityBase
 {
@@ -65,7 +61,7 @@ public class TileEntityRift extends DDTileEntityBase
 	{
 		if (PocketManager.getLink(xCoord, yCoord, zCoord, worldObj.provider.dimensionId) == null)
 		{
-			if (worldObj.getBlockId(xCoord, yCoord, zCoord) == mod_pocketDim.blockRift.blockID)
+			if (worldObj.getBlock(xCoord, yCoord, zCoord).equals(mod_pocketDim.blockRift))
 			{
 				worldObj.setBlockToAir(xCoord, yCoord, zCoord);
 			}
@@ -76,7 +72,7 @@ public class TileEntityRift extends DDTileEntityBase
 			return;
 		}
 		
-		if (worldObj.getBlockId(xCoord, yCoord, zCoord) != mod_pocketDim.blockRift.blockID)
+		if (!worldObj.getBlock(xCoord, yCoord, zCoord).equals(mod_pocketDim.blockRift))
 		{
 			invalidate();
 			return;
@@ -154,11 +150,12 @@ public class TileEntityRift extends DDTileEntityBase
 			for (DimLink riftLink : dimension.findRiftsInRange(worldObj, 6, xCoord, yCoord, zCoord))
 			{
 				Point4D location = riftLink.source();
-				TileEntityRift rift = (TileEntityRift) worldObj.getBlockTileEntity(location.getX(), location.getY(), location.getZ());
+				TileEntityRift rift = (TileEntityRift) worldObj.getTileEntity(location.getX(), location.getY(), location.getZ());
 				if (rift != null && !rift.shouldClose)
 				{
 					rift.shouldClose = true;
-					rift.onInventoryChanged();
+					//TODO 1.7
+//					rift.onInventoryChanged();
 				}
 			}
 		}
@@ -207,7 +204,8 @@ public class TileEntityRift extends DDTileEntityBase
 			this.yOffset = 0;
 			this.xOffset = 0;
 		}
-		this.onInventoryChanged();
+		//TODO 1.7
+		//this.onInventoryChanged();
 	}
 	
 	@Override
@@ -283,7 +281,8 @@ public class TileEntityRift extends DDTileEntityBase
 		nbt.setFloat("growth", this.growth);
 
 	}
-
+	//TODO 1.7
+/*
 	@Override
 	public Packet getDescriptionPacket()
 	{
@@ -299,7 +298,7 @@ public class TileEntityRift extends DDTileEntityBase
 	{
 		readFromNBT(pkt.data);
 	}
-
+*/
 	@Override
 	public float[] getRenderColor(Random rand)
 	{

@@ -1,11 +1,10 @@
 package StevenDimDoors.mod_pocketDimClient;
 
+import net.minecraft.util.IIcon;
 import org.lwjgl.opengl.GL11;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockGrass;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 
@@ -79,7 +78,7 @@ public class PrivatePocketRender implements ISimpleBlockRenderingHandler
         Tessellator tessellator = Tessellator.instance;
         boolean flag = false;
 
-        Icon icon = renderer.getBlockIcon(block, world, x, y, z, 2);
+        IIcon icon = renderer.getBlockIcon(block, world, x, y, z, 2);
         
 
 
@@ -144,7 +143,7 @@ public class PrivatePocketRender implements ISimpleBlockRenderingHandler
 
 	
 	@Override
-	public boolean shouldRender3DInInventory()
+	public boolean shouldRender3DInInventory(int modelid)
 	{
 		// TODO Auto-generated method stub
 		return true;

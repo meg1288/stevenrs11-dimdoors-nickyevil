@@ -12,16 +12,16 @@ import StevenDimDoors.mod_pocketDim.core.PocketManager;
 public class PersonalDimDoor extends BaseDimDoor
 {
 
-	public PersonalDimDoor(int blockID, Material material, DDProperties properties)
+	public PersonalDimDoor(Material material, DDProperties properties)
 	{
-		super(blockID, material, properties);
+		super(material, properties);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public void placeLink(World world, int x, int y, int z)
 	{
-		if (!world.isRemote && world.getBlockId(x, y - 1, z) == this.blockID)
+		if (!world.isRemote && world.getBlock(x, y - 1, z).equals(this))
 		{
 			NewDimData dimension = PocketManager.getDimensionData(world);
 			DimLink link = dimension.getLink(x, y, z);
@@ -33,15 +33,15 @@ public class PersonalDimDoor extends BaseDimDoor
 	}
 
 	@Override
-	public int getDrops()
+	public net.minecraft.item.Item getDrops()
 	{
-		return mod_pocketDim.itemQuartzDoor.itemID;
+		return mod_pocketDim.itemQuartzDoor;
 	}
 
 	@Override
-	public int getDoorItem()
+	public net.minecraft.item.Item getDoorItem()
 	{
-		return mod_pocketDim.itemPersonalDoor.itemID;
+		return mod_pocketDim.itemPersonalDoor;
 	}
 
 }

@@ -1,6 +1,7 @@
 package StevenDimDoors.mod_pocketDim.blocks;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;
 import StevenDimDoors.mod_pocketDim.mod_pocketDim;
@@ -11,15 +12,15 @@ import StevenDimDoors.mod_pocketDim.core.PocketManager;
 
 public class UnstableDoor extends BaseDimDoor
 {
-	public UnstableDoor(int blockID, Material material, DDProperties properties) 
+	public UnstableDoor(Material material, DDProperties properties)
 	{
-		super(blockID, material, properties);
+		super(material, properties);
 	}
 
 	@Override
 	public void placeLink(World world, int x, int y, int z) 
 	{
-		if (!world.isRemote && world.getBlockId(x, y - 1, z) == this.blockID)
+		if (!world.isRemote && world.getBlock(x, y - 1, z).equals(this))
 		{
 			NewDimData dimension = PocketManager.getDimensionData(world);
 			dimension.createLink(x, y, z, LinkType.RANDOM,world.getBlockMetadata(x, y - 1, z));
@@ -27,14 +28,14 @@ public class UnstableDoor extends BaseDimDoor
 	}
 	
 	@Override
-	public int getDoorItem()
+	public Item getDoorItem()
 	{
-		return mod_pocketDim.itemUnstableDoor.itemID;
+		return mod_pocketDim.itemUnstableDoor;
 	}
 	
 	@Override
-	public int getDrops()
+	public Item getDrops()
 	{
-		return Item.doorIron.itemID;
+		return Items.iron_door;
 	}
 }

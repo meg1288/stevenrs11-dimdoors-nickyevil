@@ -20,8 +20,10 @@ public class ModBlockFilter extends SchematicFilter {
 	}
 	
 	@Override
-	protected boolean applyToBlock(int index, short[] blocks, byte[] metadata)
+	protected boolean applyToBlock(int index, Block[] blocks, byte[] metadata)
 	{
+		//TODO 1.7
+		/*
 		int k;
 		short currentID = blocks[index];
 		if (currentID > maxVanillaBlockID || (currentID != 0 && Block.blocksList[currentID] == null))
@@ -39,7 +41,7 @@ public class ModBlockFilter extends SchematicFilter {
 			blocks[index] = replacementBlockID;
 			metadata[index] = replacementMetadata;
 			return true;
-		}
+		}*/
 		return false;
 	}
 	

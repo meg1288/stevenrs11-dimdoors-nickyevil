@@ -25,9 +25,9 @@ public interface IDimDoor
 	 */
 	public void placeLink(World world, int x, int y, int z);
 	
-	public int getDrops();
+	public net.minecraft.item.Item getDrops();
 	
-	public int getDoorItem();
+	public net.minecraft.item.Item getDoorItem();
 	
 	public TileEntity initDoorTE(World world, int x, int y, int z);
 	

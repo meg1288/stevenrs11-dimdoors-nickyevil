@@ -1,22 +1,10 @@
 package StevenDimDoors.mod_pocketDim;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import StevenDimDoors.mod_pocketDim.watcher.ClientLinkData;
-import net.minecraft.network.INetworkManager;
-import net.minecraft.network.packet.Packet250CustomPayload;
-import StevenDimDoors.mod_pocketDim.core.PocketManager;
-import StevenDimDoors.mod_pocketDim.util.Point4D;
-import StevenDimDoors.mod_pocketDim.watcher.ClientDimData;
-import StevenDimDoors.mod_pocketDim.watcher.IUpdateWatcher;
-import cpw.mods.fml.common.network.IPacketHandler;
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-
-public class ServerPacketHandler implements IPacketHandler
+public class ServerPacketHandler
 {
+
+	//TODO 1.7
+	/*
 	public ServerPacketHandler()
 	{
 		PocketManager.registerDimWatcher(new DimWatcher());
@@ -138,4 +126,5 @@ public class ServerPacketHandler implements IPacketHandler
 			e.printStackTrace();
 		}
 	}
+	*/
 }

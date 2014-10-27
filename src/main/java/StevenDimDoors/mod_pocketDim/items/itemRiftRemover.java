@@ -1,36 +1,36 @@
 package StevenDimDoors.mod_pocketDim.items;
 
-import java.util.List;
-
+import StevenDimDoors.mod_pocketDim.core.DimLink;
+import StevenDimDoors.mod_pocketDim.core.NewDimData;
+import StevenDimDoors.mod_pocketDim.core.PocketManager;
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
+import StevenDimDoors.mod_pocketDim.tileentities.TileEntityRift;
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
-import StevenDimDoors.mod_pocketDim.mod_pocketDim;
-import StevenDimDoors.mod_pocketDim.core.DimLink;
-import StevenDimDoors.mod_pocketDim.core.NewDimData;
-import StevenDimDoors.mod_pocketDim.core.PocketManager;
-import StevenDimDoors.mod_pocketDim.tileentities.TileEntityRift;
-import cpw.mods.fml.client.FMLClientHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.List;
 
 public class itemRiftRemover extends Item
 {
-	public itemRiftRemover(int itemID, Material par2Material)
+	public itemRiftRemover(Material par2Material)
 	{
-		super(itemID);
+		super();
 		this.setMaxStackSize(1);
 		this.setCreativeTab(mod_pocketDim.dimDoorsCreativeTab);
 		this.setMaxDamage(4);
 	}
 
 	@Override
-	public void registerIcons(IconRegister par1IconRegister)
+	public void registerIcons(IIconRegister par1IconRegister)
 	{
 		this.itemIcon = par1IconRegister.registerIcon(mod_pocketDim.modid + ":" + this.getUnlocalizedName().replace("item.", ""));
 	}
@@ -56,7 +56,7 @@ public class itemRiftRemover extends Item
 			int hz = hit.blockZ;
 			NewDimData dimension = PocketManager.createDimensionData(world);
 			DimLink link = dimension.getLink(hx, hy, hz);
-			if (world.getBlockId(hx, hy, hz) == mod_pocketDim.blockRift.blockID && link != null &&
+			if (world.getBlock(hx, hy, hz).equals(mod_pocketDim.blockRift) && link != null &&
 				player.canPlayerEdit(hx, hy, hz, hit.sideHit, stack))
 			{
 				// Invoke onPlayerRightClick()
@@ -87,15 +87,16 @@ public class itemRiftRemover extends Item
 			 
 			 NewDimData dimension = PocketManager.createDimensionData(world);
 			 DimLink link = dimension.getLink(x, y, z);
-			 if (world.getBlockId(x, y, z) == mod_pocketDim.blockRift.blockID && link != null &&
+			 if (world.getBlock(x, y, z).equals(mod_pocketDim.blockRift) && link != null &&
 				player.canPlayerEdit(x, y, z, side, stack))
 			 {
 				// Tell the rift's tile entity to do its removal animation
-				 TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
+				 TileEntity tileEntity = world.getTileEntity(x, y, z);
 				 if (tileEntity != null && tileEntity instanceof TileEntityRift)
 				 {
 					 ((TileEntityRift) tileEntity).shouldClose = true;
-					 tileEntity.onInventoryChanged();
+					 //TODO 1.7
+//					 tileEntity.onInventoryChanged();
 				 }
 				 else if (!world.isRemote)
 				 {

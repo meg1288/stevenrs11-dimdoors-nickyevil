@@ -29,12 +29,12 @@ public class SphereDecayOperation extends WorldOperation
 	private double centerX;
 	private double centerY;
 	private double centerZ;
-	private int primaryBlockID;
+	private Block primaryBlockID;
 	private int primaryMetadata;
-	private int secondaryBlockID;
+	private Block secondaryBlockID;
 	private int secondaryMetadata;
 	
-	public SphereDecayOperation(Random random, int primaryBlockID, int primaryMetadata, int secondaryBlockID, int secondaryMetadata)
+	public SphereDecayOperation(Random random, Block primaryBlockID, int primaryMetadata, Block secondaryBlockID, int secondaryMetadata)
 	{
 		super("SphereDecayOperation");
 		this.random = random;

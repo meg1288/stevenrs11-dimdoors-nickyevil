@@ -18,7 +18,8 @@ public class DispenserBehaviorStabilizedRS extends BehaviorDefaultDispenseItem
         int x = dispenser.getXInt();
         int y = dispenser.getYInt();
         int z = dispenser.getZInt();
-        EnumFacing facing = BlockDispenser.getFacing(dispenser.getBlockMetadata());
+        EnumFacing facing = EnumFacing.EAST;//TODO 1.7
+        // BlockDispenser.getFacing(dispenser.getBlockMetadata());
         int dx = facing.getFrontOffsetX();
         int dy = facing.getFrontOffsetY();
         int dz = facing.getFrontOffsetZ();

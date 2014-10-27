@@ -21,9 +21,9 @@ public class WorldBlockSetter implements IBlockSetter
 		this.ignoreAir = ignoreAir;
 	}
 	
-	public void setBlock(World world, int x, int y, int z, int blockID, int metadata)
+	public void setBlock(World world, int x, int y, int z, Block blockID, int metadata)
 	{
-		if (!ignoreAir || blockID != 0)
+		if (!ignoreAir)
 		{
 			world.setBlock(x, y, z, blockID, metadata, flags);
 		}

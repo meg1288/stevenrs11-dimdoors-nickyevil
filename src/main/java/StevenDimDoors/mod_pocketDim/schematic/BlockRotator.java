@@ -1,12 +1,7 @@
 package StevenDimDoors.mod_pocketDim.schematic;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockComparator;
-import net.minecraft.block.BlockDoor;
-import net.minecraft.block.BlockRedstoneRepeater;
-import net.minecraft.block.BlockStairs;
 import StevenDimDoors.mod_pocketDim.Point3D;
-import StevenDimDoors.mod_pocketDim.mod_pocketDim;
+import net.minecraft.block.Block;
 
 public class BlockRotator
 {
@@ -20,7 +15,8 @@ public class BlockRotator
 	private final static boolean[] hasOrientations = new boolean[BLOCK_ID_COUNT];
 	
 	static
-	{
+	{//TODO 1.7 ... sigh...
+		/*
 		hasOrientations[Block.dispenser.blockID] = true;
 		hasOrientations[Block.dropper.blockID] = true;
 		hasOrientations[Block.stairsStoneBrick.blockID] = true;
@@ -72,10 +68,10 @@ public class BlockRotator
 		hasOrientations[mod_pocketDim.warpDoor.blockID] = true;
 		hasOrientations[mod_pocketDim.goldenDimensionalDoor.blockID] = true;
 		hasOrientations[mod_pocketDim.personalDimDoor.blockID] = true;
-		
+		*/
 	}
 
-	public static int transformMetadata(int metadata, int turns, int blockID)
+	public static int transformMetadata(int metadata, int turns, Block blockID)
 	{
 		//I changed rotations to reduce the monstrous code we had. It might be
 		//slightly less efficient, but it's easier to maintain for now. ~SenseiKiwi
@@ -83,24 +79,25 @@ public class BlockRotator
 		//Correct negative turns and get the minimum number of rotations needed
 		turns += 1 << 16;
 		turns %= 4;
-		
-		if (hasOrientations[blockID])
-		{
+
 			while (turns > 0)
 			{
 				metadata = rotateMetadataBy90(metadata, blockID);
 				turns--;
 			}
-		}
+
 		return metadata;
 	}
 	
-	private static int rotateMetadataBy90(int metadata, int blockID)
+	private static int rotateMetadataBy90(int metadata, Block blockID)
 	{
+
+		//TODO O GOD WHAT IS THIS 1.7
+		/*
 		//TODO: Replace this horrible function with something prettier. We promise we will for the next version,
 		//after switching to MC 1.6. PADRE, PLEASE FORGIVE OUR SINS.
 
-		if (blockID == Block.wood.blockID)
+		if (blockID == Blocks.log)
 		{
 			if (metadata >= 4 && metadata < 12)
 			{
@@ -498,6 +495,7 @@ public class BlockRotator
 				break;
 			}
 		}
+		*/
 		return metadata;
 	}
 	

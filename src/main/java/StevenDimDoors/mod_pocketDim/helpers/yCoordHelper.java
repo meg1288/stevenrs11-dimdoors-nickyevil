@@ -2,6 +2,7 @@ package StevenDimDoors.mod_pocketDim.helpers;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -52,22 +53,17 @@ public class yCoordHelper
 	
 	public static boolean isCoveredBlock(Chunk chunk, int localX, int y, int localZ)
 	{
-		int blockID;
 		Block block;
 		Material material;
 		
 		if (y < 0)
 			return false;
 		
-		blockID = chunk.getBlockID(localX, y, localZ);
-		if (blockID == 0)
-			return false;
-
-		block = Block.blocksList[blockID];
-		if (block == null)
+		block = chunk.getBlock(localX, y, localZ);
+		if (block.equals(Blocks.air))
 			return false;
 		
-		material = block.blockMaterial;
+		material = block.getMaterial();
 		return (material.isLiquid() || !material.isReplaceable());
 	}
 	
@@ -89,7 +85,7 @@ public class yCoordHelper
 		Chunk chunk = initializeChunkArea(world, x >> 4, z >> 4);
 		
 		int height = world.getActualHeight();
-		int y, dx, dz, blockID, metadata;
+		int y, dx, dz, metadata;
 		boolean isSafe;
 		Block block;
 
@@ -109,12 +105,11 @@ public class yCoordHelper
 			{
 				for (dz = -1; dz <= 1 && isSafe; dz++)
 				{
-					blockID = chunk.getBlockID(localX  + dx, y, localZ + dz);
+					block = chunk.getBlock(localX  + dx, y, localZ + dz);
 					metadata = chunk.getBlockMetadata(localX  + dx, y, localZ + dz);
-					block = Block.blocksList[blockID];
-					if (blockID != 0 && (!block.blockMaterial.isReplaceable() || block.blockMaterial.isLiquid()))
+					if (!block.equals(Blocks.air) && (!block.getMaterial().isReplaceable() || block.getMaterial().isLiquid()))
 					{
-						if (!block.blockMaterial.isReplaceable() && (!block.isOpaqueCube() || block.hasTileEntity(metadata)))
+						if (!block.getMaterial().isReplaceable() && (!block.isOpaqueCube() || block.hasTileEntity(metadata)))
 						{
 							isSafe = false;
 						}
@@ -152,7 +147,7 @@ public class yCoordHelper
 		Chunk chunk = initializeChunkArea(world, x >> 4, z >> 4);
 		
 		int height = world.getActualHeight();
-		int y, dx, dz, blockID, metadata;
+		int y, dx, dz, metadata;
 		boolean isSafe;
 		boolean hasBlocks;
 		Block block;
@@ -170,12 +165,11 @@ public class yCoordHelper
 			{
 				for (dz = -1; dz <= 1 && isSafe; dz++)
 				{
-					blockID = chunk.getBlockID(localX  + dx, y, localZ + dz);
+					block = chunk.getBlock(localX  + dx, y, localZ + dz);
 					metadata = chunk.getBlockMetadata(localX  + dx, y, localZ + dz);
-					block = Block.blocksList[blockID];
-					if (blockID != 0 && (!block.blockMaterial.isReplaceable() || block.blockMaterial.isLiquid()))
+					if (!block.equals(Blocks.air) && (!block.getMaterial().isReplaceable() || block.getMaterial().isLiquid()))
 					{
-						if (!block.blockMaterial.isReplaceable() && (!block.isOpaqueCube() || block.hasTileEntity(metadata)))
+						if (!block.getMaterial().isReplaceable() && (!block.isOpaqueCube() || block.hasTileEntity(metadata)))
 						{
 							if (layers >= 3)
 							{
@@ -247,7 +241,7 @@ public class yCoordHelper
 			{
 				for (dz = -1; dz <= 1; dz++, index++)
 				{
-					if (chunk.getBlockID(localX  + dx, y, localZ + dz) != 0)
+					if (!chunk.getBlock(localX  + dx, y, localZ + dz).equals(Blocks.air))
 					{
 						gaps[index] = 0;
 					}

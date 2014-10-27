@@ -1,38 +1,32 @@
 package StevenDimDoors.mod_pocketDim.blocks;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Random;
-
+import StevenDimDoors.mod_pocketDim.Point3D;
+import StevenDimDoors.mod_pocketDim.config.DDProperties;
+import StevenDimDoors.mod_pocketDim.core.DimLink;
+import StevenDimDoors.mod_pocketDim.core.NewDimData;
+import StevenDimDoors.mod_pocketDim.core.PocketManager;
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
+import StevenDimDoors.mod_pocketDim.tileentities.TileEntityRift;
+import StevenDimDoors.mod_pocketDim.util.Point4D;
+import StevenDimDoors.mod_pocketDimClient.ClosingRiftFX;
+import StevenDimDoors.mod_pocketDimClient.GoggleRiftFX;
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockFlowing;
-import net.minecraft.block.BlockFluid;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fluids.IFluidBlock;
-import StevenDimDoors.mod_pocketDim.Point3D;
-import StevenDimDoors.mod_pocketDim.mod_pocketDim;
-import StevenDimDoors.mod_pocketDim.config.DDProperties;
-import StevenDimDoors.mod_pocketDim.core.DimLink;
-import StevenDimDoors.mod_pocketDim.core.NewDimData;
-import StevenDimDoors.mod_pocketDim.core.PocketManager;
-import StevenDimDoors.mod_pocketDim.tileentities.TileEntityRift;
-import StevenDimDoors.mod_pocketDim.util.Point4D;
-import StevenDimDoors.mod_pocketDimClient.ClosingRiftFX;
-import StevenDimDoors.mod_pocketDimClient.GoggleRiftFX;
-import StevenDimDoors.mod_pocketDimClient.RiftFX;
-import cpw.mods.fml.client.FMLClientHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+
+import java.util.*;
 
 public class BlockRift extends Block implements ITileEntityProvider
 {
@@ -47,15 +41,18 @@ public class BlockRift extends Block implements ITileEntityProvider
 	public static final int MAX_WORLD_THREAD_DROP_CHANCE = 1000;
 	
 	private final DDProperties properties;
-	private final ArrayList<Integer> blocksImmuneToRift;	// List of Vanilla blocks immune to rifts
-	private final ArrayList<Integer> modBlocksImmuneToRift; // List of DD blocks immune to rifts
+	private final ArrayList<Block> blocksImmuneToRift;	// List of Vanilla blocks immune to rifts
+	private final ArrayList<Block> modBlocksImmuneToRift; // List of DD blocks immune to rifts
 	
-	public BlockRift(int i, int j, Material par2Material, DDProperties properties) 
+	public BlockRift(Material par2Material, DDProperties properties)
 	{
-		super(i, par2Material);
+		super(par2Material);
 		this.setTickRandomly(true);
 		this.properties = properties;
-		this.modBlocksImmuneToRift = new ArrayList<Integer>();
+		//TODO 1.7
+
+		this.modBlocksImmuneToRift = new ArrayList<Block>();
+		/*
 		this.modBlocksImmuneToRift.add(properties.FabricBlockID);
 		this.modBlocksImmuneToRift.add(properties.PermaFabricBlockID);
 		this.modBlocksImmuneToRift.add(properties.DimensionalDoorID);
@@ -66,9 +63,10 @@ public class BlockRift extends Block implements ITileEntityProvider
 		this.modBlocksImmuneToRift.add(properties.TransientDoorID);
 		this.modBlocksImmuneToRift.add(properties.GoldenDimensionalDoorID);
 		this.modBlocksImmuneToRift.add(properties.GoldenDoorID);
+		*/
 		
-		this.blocksImmuneToRift = new ArrayList<Integer>();
-		
+		this.blocksImmuneToRift = new ArrayList<Block>();
+		/*
 		this.blocksImmuneToRift.add(properties.FabricBlockID);
 		this.blocksImmuneToRift.add(properties.PermaFabricBlockID);
 		this.blocksImmuneToRift.add(properties.DimensionalDoorID);
@@ -85,10 +83,11 @@ public class BlockRift extends Block implements ITileEntityProvider
 		this.blocksImmuneToRift.add(Block.blockGold.blockID);
 		this.blocksImmuneToRift.add(Block.blockDiamond.blockID);
 		this.blocksImmuneToRift.add(Block.blockEmerald.blockID);
+			*/
 	}
 	
 	@Override
-	public void registerIcons(IconRegister par1IconRegister)
+	public void registerBlockIcons(IIconRegister par1IconRegister)
 	{
 		this.blockIcon = par1IconRegister.registerIcon(mod_pocketDim.modid + ":" + this.getUnlocalizedName());
 	}
@@ -166,7 +165,7 @@ public class BlockRift extends Block implements ITileEntityProvider
 			//Randomly decide whether to search for blocks to destroy. This reduces the frequency of search operations,
 			//moderates performance impact, and controls the apparent speed of block destruction.
 			if (random.nextInt(MAX_BLOCK_SEARCH_CHANCE) < BLOCK_SEARCH_CHANCE &&
-					((TileEntityRift) world.getBlockTileEntity(x, y, z)).updateNearestRift() )
+					((TileEntityRift) world.getTileEntity(x, y, z)).updateNearestRift() )
 			{
 				destroyNearbyBlocks(world, x, y, z, random);
 			}
@@ -184,8 +183,9 @@ public class BlockRift extends Block implements ITileEntityProvider
 		{
 			if (random.nextInt(MAX_BLOCK_DESTRUCTION_CHANCE) < BLOCK_DESTRUCTION_CHANCE)
 			{
-				dropWorldThread(world.getBlockId(target.getX(), target.getY(), target.getZ()), world, x, y, z, random);
-				world.destroyBlock(target.getX(), target.getY(), target.getZ(), false);
+				dropWorldThread(world.getBlock(target.getX(), target.getY(), target.getZ()), world, x, y, z, random);
+				//TODO 1.7
+//				world.destroyBlock(target.getX(), target.getY(), target.getZ(), false);
 			}
 		}
 	}
@@ -231,12 +231,14 @@ public class BlockRift extends Block implements ITileEntityProvider
 		return targets;
 	}
 		
-	public void dropWorldThread(int blockID, World world, int x, int y, int z, Random random)
+	public void dropWorldThread(Block block, World world, int x, int y, int z, Random random)
 	{
-		if (blockID != 0 && (random.nextInt(MAX_WORLD_THREAD_DROP_CHANCE) < properties.WorldThreadDropChance)
-				&& !(Block.blocksList[blockID] instanceof BlockFlowing ||
-					Block.blocksList[blockID] instanceof BlockFluid ||
-					Block.blocksList[blockID] instanceof IFluidBlock))
+		if (!block.equals(Blocks.air) && (random.nextInt(MAX_WORLD_THREAD_DROP_CHANCE) < properties.WorldThreadDropChance)
+			//TODO 1.7
+				&& !(/*block instanceof BlockFlowing ||
+					block instanceof BlockFluid ||
+					*/
+				block instanceof IFluidBlock))
 		{
 			ItemStack thread = new ItemStack(mod_pocketDim.itemWorldThread, 1);
 			world.spawnEntityInWorld(new EntityItem(world, x, y, z, thread));
@@ -265,7 +267,8 @@ public class BlockRift extends Block implements ITileEntityProvider
 	
 	public boolean spreadRift(NewDimData dimension, DimLink parent, World world, Random random)
 	{
-		int x, y, z, blockID;
+		int x, y, z;
+		Block block;
 		Point4D source = parent.source();
 		
 		// Find reachable blocks that are vulnerable to rift damage and include air
@@ -281,14 +284,15 @@ public class BlockRift extends Block implements ITileEntityProvider
 			z = target.getZ();
 
 			// Create a child, replace the block with a rift, and consider dropping World Thread
-			blockID = world.getBlockId(x, y, z);
-			if (world.setBlock(x, y, z, properties.RiftBlockID))
+			block = world.getBlock(x, y, z);
+			//TODO 1.7
+/*			if (world.setBlock(x, y, z, properties.RiftBlockID))
 			{
 				dimension.createChildLink(x, y, z, parent);
-				dropWorldThread(blockID, world, x, y, z, random);
+				dropWorldThread(block, world, x, y, z, random);
 				return true;
 			}
-		}
+*/		}
 		return false;
 	}
 	
@@ -314,7 +318,7 @@ public class BlockRift extends Block implements ITileEntityProvider
 		 ArrayList<Point3D> targets=findReachableBlocks(world, x, y, z, 2, false);
 		
 		
-		TileEntityRift tile = (TileEntityRift)world.getBlockTileEntity(x, y, z);
+		TileEntityRift tile = (TileEntityRift)world.getTileEntity(x, y, z);
 		
 		
 			if(rand.nextBoolean())
@@ -335,14 +339,14 @@ public class BlockRift extends Block implements ITileEntityProvider
 	{
 		if (world != null && !isBlockImmune(world, x, y, z))
 		{
-			return world.setBlock(x, y, z, mod_pocketDim.blockRift.blockID);
+			return world.setBlock(x, y, z, mod_pocketDim.blockRift);
 		}
 		return false;
 	}
 
 	public boolean isBlockImmune(World world, int x, int y, int z)
 	{
-		Block block = Block.blocksList[world.getBlockId(x, y, z)];
+		Block block = world.getBlock(x, y, z);
 		if (block != null)
 		{
 			// SenseiKiwi: I've switched to using the block's blast resistance instead of its
@@ -350,10 +354,11 @@ public class BlockRift extends Block implements ITileEntityProvider
 			// may have low hardness to make them easier to build with. However, block.getExplosionResistance()
 			// is designed to receive an entity, the source of the blast. We have no entity so
 			// I've set this to access blockResistance directly. Might need changing later.
-			
-			return (block.blockResistance >= MIN_IMMUNE_RESISTANCE ||
-					modBlocksImmuneToRift.contains(block.blockID) ||
-					blocksImmuneToRift.contains(block.blockID));
+
+		//TODO 1.7
+			return (/*block.blockResistance >= MIN_IMMUNE_RESISTANCE ||*/
+					modBlocksImmuneToRift.contains(block) ||
+					blocksImmuneToRift.contains(block));
 		}
 		return false;
 	}
@@ -362,14 +367,16 @@ public class BlockRift extends Block implements ITileEntityProvider
 	{
 		// Check whether the block at the specified location is one of the
 		// rift-resistant blocks from DD.
-		Block block = Block.blocksList[world.getBlockId(x, y, z)];
+		Block block = world.getBlock(x, y, z);
 		if (block != null)
 		{
-			return modBlocksImmuneToRift.contains(block.blockID);
+			return modBlocksImmuneToRift.contains(block);
 		}
 		return false;
 	}
-	
+
+	//TODO 1.7
+	/*
 	@Override
 	public int idPicked(World par1World, int par2, int par3, int par4)
 	{
@@ -380,23 +387,23 @@ public class BlockRift extends Block implements ITileEntityProvider
 	public int idDropped(int par1, Random par2Random, int par3)
 	{
 		return 0;
-	}
+	}*/
 
 	@Override
-	public TileEntity createNewTileEntity(World world) 
+	public TileEntity createNewTileEntity(World world, int meta)
 	{
 		return new TileEntityRift();
 	}
 	
 	@Override
-	public void breakBlock(World world, int x, int y, int z, int oldBlockID, int oldMeta)
+	public void breakBlock(World world, int x, int y, int z, Block oldBlockID, int oldMeta)
     {
 		// This function runs on the server side after a block is replaced
 		// We MUST call super.breakBlock() since it involves removing tile entities
         super.breakBlock(world, x, y, z, oldBlockID, oldMeta);
         
         // Schedule rift regeneration for this block if it was changed
-        if (world.getBlockId(x, y, z) != oldBlockID)
+        if (!world.getBlock(x, y, z).equals(oldBlockID))
         {
         	mod_pocketDim.riftRegenerator.scheduleSlowRegeneration(x, y, z, world);
         }

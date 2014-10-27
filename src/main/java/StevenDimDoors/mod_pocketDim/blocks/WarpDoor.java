@@ -1,6 +1,7 @@
 package StevenDimDoors.mod_pocketDim.blocks;
 
 import net.minecraft.block.material.Material;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.world.World;
 import StevenDimDoors.mod_pocketDim.mod_pocketDim;
@@ -12,15 +13,15 @@ import StevenDimDoors.mod_pocketDim.core.PocketManager;
 
 public class WarpDoor extends BaseDimDoor
 {
-	public WarpDoor(int blockID, Material material, DDProperties properties) 
+	public WarpDoor(Material material, DDProperties properties)
 	{
-		super(blockID, material, properties);
+		super(material, properties);
 	}
 
 	@Override
 	public void placeLink(World world, int x, int y, int z) 
 	{
-		if (!world.isRemote && world.getBlockId(x, y - 1, z) == this.blockID)
+		if (!world.isRemote && world.getBlock(x, y - 1, z).equals(this))
 		{
 			NewDimData dimension = PocketManager.createDimensionData(world);
 			DimLink link = dimension.getLink(x, y, z);
@@ -32,14 +33,14 @@ public class WarpDoor extends BaseDimDoor
 	}
 	
 	@Override
-	public int getDoorItem()
+	public Item getDoorItem()
 	{
-		return mod_pocketDim.itemWarpDoor.itemID;
+		return mod_pocketDim.itemWarpDoor;
 	}
 	
 	@Override
-	public int getDrops()
+	public Item getDrops()
 	{
-		return Item.doorWood.itemID;
+		return Items.wooden_door;
 	}
 }

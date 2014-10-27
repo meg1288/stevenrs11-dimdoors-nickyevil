@@ -1,4 +1,6 @@
+/*
 package StevenDimDoors.mod_pocketDim.ticking;
+
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -9,6 +11,8 @@ import cpw.mods.fml.common.TickType;
 
 public class ServerTickHandler implements ITickHandler, IRegularTickSender
 {
+	//TODO rewrite for 1.7
+
 	private static final String PROFILING_LABEL = "Dimensional Doors: Server Tick";
 	
 	private int tickCount = 0;
@@ -79,3 +83,4 @@ public class ServerTickHandler implements ITickHandler, IRegularTickSender
 		return PROFILING_LABEL; //Used for profiling!
 	}
 }
+*/

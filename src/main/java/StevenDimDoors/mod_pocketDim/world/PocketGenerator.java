@@ -14,6 +14,11 @@ import StevenDimDoors.mod_pocketDim.ticking.CustomLimboPopulator;
 
 public class PocketGenerator extends ChunkProviderGenerate
 {
+	public PocketGenerator(World p_i2006_1_, long p_i2006_2_, boolean p_i2006_4_) {
+		super(p_i2006_1_, p_i2006_2_, p_i2006_4_);
+	}
+	//TODO 1.7
+
 	private World worldObj;
 
 	private CustomLimboPopulator spawner;
@@ -24,7 +29,7 @@ public class PocketGenerator extends ChunkProviderGenerate
 		this.worldObj = par1World;
 		
 		this.spawner = spawner;
-	}
+	}/*
 	
 	@Override
 	public void generateTerrain(int par1, int par2, byte[] par3ArrayOfByte)
@@ -80,5 +85,5 @@ public class PocketGenerator extends ChunkProviderGenerate
 	public ChunkPosition findClosestStructure(World var1, String var2, int var3, int var4, int var5)
 	{
 		return null;
-	}
+	}*/
 }

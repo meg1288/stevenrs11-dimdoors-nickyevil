@@ -1,37 +1,37 @@
 package StevenDimDoors.mod_pocketDim.blocks;
 
-import java.util.Random;
-
+import StevenDimDoors.mod_pocketDim.config.DDProperties;
+import StevenDimDoors.mod_pocketDim.core.DDTeleporter;
+import StevenDimDoors.mod_pocketDim.helpers.yCoordHelper;
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
+import StevenDimDoors.mod_pocketDim.util.Point4D;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
-import StevenDimDoors.mod_pocketDim.mod_pocketDim;
-import StevenDimDoors.mod_pocketDim.config.DDProperties;
-import StevenDimDoors.mod_pocketDim.core.DDTeleporter;
-import StevenDimDoors.mod_pocketDim.helpers.yCoordHelper;
-import StevenDimDoors.mod_pocketDim.util.Point4D;
+
+import java.util.Random;
 
 public class BlockDimWallPerm extends Block
 {
 	private static final Random random = new Random();
 	private static DDProperties properties = null;
 	
-	public BlockDimWallPerm(int i, int j, Material par2Material) 
+	public BlockDimWallPerm()
 	{
-		super(i, Material.ground);
+		super(Material.ground);
         this.setCreativeTab(mod_pocketDim.dimDoorsCreativeTab);
 		if (properties == null)
 			properties = DDProperties.instance();
 	}
 
 	@Override
-	public void registerIcons(IconRegister par1IconRegister)
+	public void registerBlockIcons(IIconRegister par1IconRegister)
 	{
 		this.blockIcon = par1IconRegister.registerIcon(mod_pocketDim.modid + ":" + this.getUnlocalizedName());
 	}
@@ -87,7 +87,8 @@ public class BlockDimWallPerm extends Block
 						if (Math.abs(xc) + Math.abs(zc) < random.nextInt(3) + 2 ||
 							Math.abs(xc) + Math.abs(zc) < random.nextInt(3) + 3)
 						{
-							overworld.setBlock(destinationX + xc, destinationY - 1, destinationZ + zc, properties.LimboBlockID);
+							//TODO 1.7
+//							overworld.setBlock(destinationX + xc, destinationY - 1, destinationZ + zc, properties.LimboBlockID);
 						}
 					}
 				}

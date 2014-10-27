@@ -3,6 +3,7 @@ package StevenDimDoors.mod_pocketDim.world;
 import java.util.List;
 import java.util.Random;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.util.IProgressUpdate;
 import net.minecraft.util.MathHelper;
@@ -13,15 +14,15 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.ChunkProviderGenerate;
 import net.minecraft.world.gen.NoiseGeneratorOctaves;
-import net.minecraft.world.gen.feature.MapGenScatteredFeature;
+import net.minecraft.world.gen.structure.MapGenScatteredFeature;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.Event.Result;
 import net.minecraftforge.event.terraingen.ChunkProviderEvent;
 import StevenDimDoors.mod_pocketDim.config.DDProperties;
 import StevenDimDoors.mod_pocketDim.ticking.CustomLimboPopulator;
 
 public class LimboGenerator extends ChunkProviderGenerate
-{
+{//TODO rewrite 1.7
+
 	private static Random rand;
 
 	/** A NoiseGeneratorOctaves used in generating terrain */
@@ -117,13 +118,7 @@ public class LimboGenerator extends ChunkProviderGenerate
 	{
 		return super.chunkExists(var1, var2);
 	}
-	
-	@Override
-	public void replaceBlocksForBiome(int par1, int par2, byte[] par3ArrayOfByte, BiomeGenBase[] par4ArrayOfBiomeGenBase)
-	{
-
-	}
-
+/*
 	@Override
 	public Chunk provideChunk(int chunkX, int chunkZ)
 	{
@@ -141,7 +136,7 @@ public class LimboGenerator extends ChunkProviderGenerate
 		}
 		return var4;
 	}
-	
+*/
 	@Override
 	public Chunk loadChunk(int var1, int var2) {
 		// TODO Auto-generated method stub
@@ -153,6 +148,7 @@ public class LimboGenerator extends ChunkProviderGenerate
 	{
 		
 	}
+/*
 
 	@Override
 	public boolean saveChunks(boolean var1, IProgressUpdate var2) {
@@ -163,7 +159,7 @@ public class LimboGenerator extends ChunkProviderGenerate
 	{
 		ChunkProviderEvent.InitNoiseField event = new ChunkProviderEvent.InitNoiseField(this, par1ArrayOfDouble, par2, par3, par4, par5, par6, par7);
 		MinecraftForge.EVENT_BUS.post(event);
-		if (event.getResult() == Result.DENY) return event.noisefield;
+		if (event.getResult() == Event.Result.DENY) return event.noisefield;
 
 		if (par1ArrayOfDouble == null)
 		{
@@ -379,7 +375,7 @@ public class LimboGenerator extends ChunkProviderGenerate
 			}
 		}
 	}
-
+*/
 
 	@Override
 	public boolean canSave() {
@@ -401,23 +397,5 @@ public class LimboGenerator extends ChunkProviderGenerate
 		return biomegenbase == null ? null : (biomegenbase == BiomeGenBase.swampland && par1EnumCreatureType == EnumCreatureType.monster && this.scatteredFeatureGenerator.hasStructureAt(par2, par3, par4) ? this.scatteredFeatureGenerator.getScatteredFeatureSpawnList() : biomegenbase.getSpawnableList(par1EnumCreatureType));
 	}
 
-	@Override
-	public ChunkPosition findClosestStructure(World var1, String var2,
-			int var3, int var4, int var5) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public int getLoadedChunkCount() {
-		// TODO Auto-generated method stub
-		return super.getLoadedChunkCount();
-	}
-
-	@Override
-	public void recreateStructures(int var1, int var2) {
-		// TODO Auto-generated method stub
-
-	}
 
 }

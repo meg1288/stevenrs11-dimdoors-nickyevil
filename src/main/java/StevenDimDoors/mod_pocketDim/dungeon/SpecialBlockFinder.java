@@ -3,8 +3,11 @@ package StevenDimDoors.mod_pocketDim.dungeon;
 import java.util.ArrayList;
 
 import StevenDimDoors.mod_pocketDim.Point3D;
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
 import StevenDimDoors.mod_pocketDim.schematic.Schematic;
 import StevenDimDoors.mod_pocketDim.schematic.SchematicFilter;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 
 public class SpecialBlockFinder extends SchematicFilter {
 
@@ -55,27 +58,29 @@ public class SpecialBlockFinder extends SchematicFilter {
 	}
 	
 	@Override
-	protected boolean initialize(Schematic schematic, short[] blocks, byte[] metadata)
+	protected boolean initialize(Schematic schematic, Block[] blocks, byte[] metadata)
 	{
 		this.schematic = schematic;
 		return true;
 	}
 	
 	@Override
-	protected boolean applyToBlock(int index, short[] blocks, byte[] metadata)
+	protected boolean applyToBlock(int index, Block[] blocks, byte[] metadata)
 	{
 		int indexBelow;
 		int indexDoubleBelow;
-		
+
+		//TODO 1.7
+		/*
 		if (blocks[index] == monolithSpawnMarkerID)
 		{
 			monolithSpawnLocations.add(schematic.calculatePoint(index));
 			return true;
-		}
-		if (blocks[index] == dimensionalDoorID)
+		}*/
+		if (blocks[index].equals(mod_pocketDim.dimensionalDoor))
 		{
 			indexBelow = schematic.calculateIndexBelow(index);
-			if (indexBelow >= 0 && blocks[indexBelow] == dimensionalDoorID)
+			if (indexBelow >= 0 && blocks[indexBelow].equals(mod_pocketDim.dimensionalDoor))
 			{
 				dimensionalDoorLocations.add(schematic.calculatePoint(index));
 				return true;
@@ -85,18 +90,20 @@ public class SpecialBlockFinder extends SchematicFilter {
 				return false;
 			}
 		}
-		if (blocks[index] == warpDoorID)
+		if (blocks[index].equals(mod_pocketDim.warpDoor))
 		{
 			indexBelow = schematic.calculateIndexBelow(index);
-			if (indexBelow >= 0 && blocks[indexBelow] == warpDoorID)
+			if (indexBelow >= 0 && blocks[indexBelow].equals(mod_pocketDim.warpDoor))
 			{
 				indexDoubleBelow = schematic.calculateIndexBelow(indexBelow);
+				//TODO 1.7
+				/*
 				if (indexDoubleBelow >= 0 && blocks[indexDoubleBelow] == exitMarkerID)
 				{
 					exitDoorLocations.add(schematic.calculatePoint(index));
 					return true;
 				}
-				else if (entranceDoorLocation == null)
+				else*/ if (entranceDoorLocation == null)
 				{
 					entranceDoorLocation = schematic.calculatePoint(index);
 					entranceOrientation = (metadata[indexBelow] & 3);

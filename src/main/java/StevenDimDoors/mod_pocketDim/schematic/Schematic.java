@@ -27,11 +27,11 @@ public class Schematic {
 	protected short height;
 	protected short length;
 
-	protected short[] blocks;
+	protected Block[] blocks;
 	protected byte[] metadata;
 	protected NBTTagList tileEntities;
 
-	protected Schematic(short width, short height, short length, short[] blocks, byte[] metadata, NBTTagList tileEntities)
+	protected Schematic(short width, short height, short length, Block[] blocks, byte[] metadata, NBTTagList tileEntities)
 	{
 		this.width = width;
 		this.height = height;
@@ -96,7 +96,7 @@ public class Schematic {
 		return length;
 	}
 	
-	public short getBlockID(int x, int y, int z)
+	public Block getBlockID(int x, int y, int z)
 	{
 		return blocks[calculateIndex(x, y, z)];
 	}
@@ -132,6 +132,8 @@ public class Schematic {
 
 	public static Schematic readFromStream(InputStream schematicStream) throws InvalidSchematicException
 	{
+		//TODO 1.7
+		/*
 		short width;
 		short height;
 		short length;
@@ -212,7 +214,7 @@ public class Schematic {
 			}
 
 			//Get the list of tile entities
-			tileEntities = schematicTag.getTagList("TileEntities");
+			tileEntities = (NBTTagList)schematicTag.getTag("TileEntities");
 			
 			Schematic result = new Schematic(width, height, length, blocks, metadata, tileEntities);
 			return result;
@@ -226,6 +228,8 @@ public class Schematic {
 		{
 			throw new InvalidSchematicException("An unexpected error occurred while trying to decode the schematic.", ex);
 		}
+		*/
+		return null;
 	}
 
 	public static Schematic copyFromWorld(World world, int x, int y, int z, short width, short height, short length, boolean doCompactBounds)
@@ -301,12 +305,14 @@ public class Schematic {
 		return writeToNBT(width, height, length, blocks, metadata, tileEntities, copyTileEntities);
 	}
 	
-	protected static NBTTagCompound writeToNBT(short width, short height, short length, short[] blocks, byte[] metadata,
+	protected static NBTTagCompound writeToNBT(short width, short height, short length, Block[] blocks, byte[] metadata,
 			NBTTagList tileEntities, boolean copyTileEntities)
 	{
 		//This is the main storage function. Schematics are really compressed NBT tags, so if we can generate
 		//the tags, most of the work is done. All the other storage functions will rely on this one.
 
+		//TODO 1.7
+		/*
 		NBTTagCompound schematicTag = new NBTTagCompound("Schematic");
 
 		schematicTag.setShort("Width", width);
@@ -341,6 +347,8 @@ public class Schematic {
 			schematicTag.setTag("TileEntities", tileEntities);
 		}
 		return schematicTag;
+	*/
+		return null;
 	}
 
 	public void writeToFile(String schematicPath) throws IOException
@@ -376,6 +384,8 @@ public class Schematic {
 	
 	protected void copyToWorld(World world, int x, int y, int z, IBlockSetter blockSetter)
 	{
+		//TODO 1.7
+		/*
 		//This isn't implemented as a WorldOperation because it doesn't quite fit the structure of those operations.
 		//It's not worth the trouble in this case.
 		int index;
@@ -400,7 +410,7 @@ public class Schematic {
 		count = tileEntities.tagCount();
 		for (index = 0; index < count; index++)
 		{
-			NBTTagCompound tileTag = (NBTTagCompound) tileEntities.tagAt(index);
+			NBTTagCompound tileTag = (NBTTagCompound) tileEntities.getCompoundTagAt(index);
 			//Rewrite its location to be in world coordinates
 			dx = tileTag.getInteger("x") + x;
 			dy = tileTag.getInteger("y") + y;
@@ -409,7 +419,8 @@ public class Schematic {
 			tileTag.setInteger("y", dy);
 			tileTag.setInteger("z", dz);
 			//Load the tile entity and put it in the world
-			world.setBlockTileEntity(dx, dy, dz, TileEntity.createAndLoadEntity(tileTag));
+			world.setTileEntity(dx, dy, dz, TileEntity.createAndLoadEntity(tileTag));
 		}
+		*/
 	}
 }

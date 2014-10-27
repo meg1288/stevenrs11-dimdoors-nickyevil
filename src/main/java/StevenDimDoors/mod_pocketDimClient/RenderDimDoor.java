@@ -1,49 +1,23 @@
 package StevenDimDoors.mod_pocketDimClient;
 
-import static org.lwjgl.opengl.GL11.GL_LIGHTING;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_DST_COLOR;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_ZERO;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import java.nio.FloatBuffer;
-import java.util.Iterator;
-import java.util.Random;
-import org.lwjgl.opengl.GL11;
-
-import net.minecraft.block.material.MapColor;
+import StevenDimDoors.mod_pocketDim.config.DDProperties;
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
+import StevenDimDoors.mod_pocketDim.tileentities.TileEntityDimDoor;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.entity.RenderItem;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureCompass;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityItemFrame;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.storage.MapCoord;
-import net.minecraft.world.storage.MapData;
+import org.lwjgl.opengl.GL11;
+
+import java.nio.FloatBuffer;
+import java.util.Random;
 
 import static org.lwjgl.opengl.GL11.*;
-
-import StevenDimDoors.mod_pocketDim.mod_pocketDim;
-import StevenDimDoors.mod_pocketDim.config.DDProperties;
-import StevenDimDoors.mod_pocketDim.core.DimLink;
-import StevenDimDoors.mod_pocketDim.core.NewDimData;
-import StevenDimDoors.mod_pocketDim.core.PocketManager;
-import StevenDimDoors.mod_pocketDim.tileentities.TileEntityDimDoor;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class RenderDimDoor extends TileEntitySpecialRenderer
@@ -352,7 +326,7 @@ public class RenderDimDoor extends TileEntitySpecialRenderer
 			TileEntityDimDoor tile = (TileEntityDimDoor) par1TileEntity;
 			try
 			{
-				mod_pocketDim.dimensionalDoor.updateAttachedTile(tile.worldObj,
+				mod_pocketDim.dimensionalDoor.updateAttachedTile(tile.getWorldObj(),
 						tile.xCoord, tile.yCoord, tile.zCoord);
 			}
 			catch (Exception e)

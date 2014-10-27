@@ -4,6 +4,7 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -264,7 +265,7 @@ public class PocketBuilder
 		}
 
 		//Check if the block below that point is actually a door
-		Block block = Block.blocksList[world.getBlockId(source.getX(), source.getY() - 1, source.getZ())];
+		Block block = world.getBlock(source.getX(), source.getY() - 1, source.getZ());
 		if (block==null || !(block instanceof IDimDoor))
 		{
 			throw new IllegalStateException("The link's source is not a door block. It should be impossible to traverse a rift without a door!");
@@ -338,7 +339,7 @@ public class PocketBuilder
 		{
 			//Register a new dimension
 			NewDimData parent = PocketManager.getDimensionData(link.source().getDimension());
-			NewDimData dimension = PocketManager.registerPocket(parent, DimensionType.PERSONAL, player.getEntityName());
+			NewDimData dimension = PocketManager.registerPocket(parent, DimensionType.PERSONAL, ((EntityPlayer) player).getDisplayName());
 
 
 			//Load a world
@@ -454,7 +455,7 @@ public class PocketBuilder
 		BlockRotator.transformPoint(center, door, orientation - BlockRotator.EAST_DOOR_METADATA, door);
 
 		//Build the outer layer of Eternal Fabric
-		buildBox(world, center.getX(), center.getY(), center.getZ(), (size / 2), properties.PermaFabricBlockID, 0, false, 0);
+		buildBox(world, center.getX(), center.getY(), center.getZ(), (size / 2), mod_pocketDim.blockDimWallPerm, 0, false, 0);
 
 		//check if we are building a personal pocket
 		int metadata = 0;
@@ -466,19 +467,19 @@ public class PocketBuilder
 		//Build the (wallThickness - 1) layers of Fabric of Reality
 		for (int layer = 1; layer < wallThickness; layer++)
 		{
-			buildBox(world, center.getX(), center.getY(), center.getZ(), (size / 2) - layer, mod_pocketDim.blockDimWall.blockID, metadata,
+			buildBox(world, center.getX(), center.getY(), center.getZ(), (size / 2) - layer, mod_pocketDim.blockDimWall, metadata,
 					layer < (wallThickness - 1) && properties.TNFREAKINGT_Enabled, properties.NonTntWeight);
 		}
 		
 		//MazeBuilder.generate(world, x, y, z, random);
 
 		//Build the door
-		int doorOrientation = BlockRotator.transformMetadata(BlockRotator.EAST_DOOR_METADATA, orientation - BlockRotator.EAST_DOOR_METADATA + 2, doorBlock.blockID);
+		int doorOrientation = BlockRotator.transformMetadata(BlockRotator.EAST_DOOR_METADATA, orientation - BlockRotator.EAST_DOOR_METADATA + 2, doorBlock);
 		ItemDimensionalDoor.placeDoorBlock(world, x, y - 1, z, doorOrientation, doorBlock);
 
 	}
 
-	private static void buildBox(World world, int centerX, int centerY, int centerZ, int radius, int blockID, int metadata, boolean placeTnt, int nonTntWeight)
+	private static void buildBox(World world, int centerX, int centerY, int centerZ, int radius, Block blockID, int metadata, boolean placeTnt, int nonTntWeight)
 	{
 		int x, y, z;
 
@@ -516,11 +517,11 @@ public class PocketBuilder
 		}
 	}
 
-	private static void setBlockDirectlySpecial(World world, int x, int y, int z, int blockID, int metadata, boolean placeTnt, int nonTntWeight)
+	private static void setBlockDirectlySpecial(World world, int x, int y, int z, Block blockID, int metadata, boolean placeTnt, int nonTntWeight)
 	{
 		if (placeTnt && random.nextInt(nonTntWeight + 1) == 0)
 		{
-			setBlockDirectly(world, x, y, z, Block.tnt.blockID, 1);
+			setBlockDirectly(world, x, y, z, Blocks.tnt, 1);
 		}
 		else
 		{
@@ -528,9 +529,9 @@ public class PocketBuilder
 		}
 	}
 
-	private static void setBlockDirectly(World world, int x, int y, int z, int blockID, int metadata)
+	private static void setBlockDirectly(World world, int x, int y, int z, Block blockID, int metadata)
 	{
-		if (blockID != 0 && Block.blocksList[blockID] == null)
+		if (blockID.equals(Blocks.air))
 		{
 			return;
 		}
@@ -551,7 +552,6 @@ public class PocketBuilder
 			extBlockStorage = new ExtendedBlockStorage(cY << 4, !world.provider.hasNoSky);
 			chunk.getBlockStorageArray()[cY] = extBlockStorage;
 		}
-		extBlockStorage.setExtBlockID(localX, y & 15, localZ, blockID);
 		extBlockStorage.setExtBlockMetadata(localX, y & 15, localZ, metadata);
 		chunk.setChunkModified();
 	}

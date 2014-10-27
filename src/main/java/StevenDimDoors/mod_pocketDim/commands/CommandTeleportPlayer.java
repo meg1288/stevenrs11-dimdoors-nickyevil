@@ -62,7 +62,7 @@ public class CommandTeleportPlayer extends DDCommandBase
 			}
 		}
 		// Check if the target player is logged in
-		targetPlayer = MinecraftServer.getServer().getConfigurationManager().getPlayerForUsername(command[0]);
+		targetPlayer = null;//TODO 1.7 MinecraftServer.getServer().getConfigurationManager().getPlayerForUsername(command[0]);
 		if (targetPlayer == null)
 		{
 			return DDCommandResult.PLAYER_OFFLINE;
