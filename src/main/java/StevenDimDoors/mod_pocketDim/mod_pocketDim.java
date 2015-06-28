@@ -1,16 +1,23 @@
 package StevenDimDoors.mod_pocketDim;
 
 import java.io.File;
+import java.util.List;
+
+import StevenDimDoors.mod_pocketDim.network.DimDoorsNetwork;
+import StevenDimDoors.mod_pocketDim.schematic.BlockRotator;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.event.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.EntityEggInfo;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemDoor;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatMessageComponent;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
@@ -65,7 +72,6 @@ import StevenDimDoors.mod_pocketDim.tileentities.TileEntityDimDoor;
 import StevenDimDoors.mod_pocketDim.tileentities.TileEntityDimDoorGold;
 import StevenDimDoors.mod_pocketDim.tileentities.TileEntityRift;
 import StevenDimDoors.mod_pocketDim.tileentities.TileEntityTransTrapdoor;
-import StevenDimDoors.mod_pocketDim.util.l_systems.LSystem;
 import StevenDimDoors.mod_pocketDim.world.BiomeGenLimbo;
 import StevenDimDoors.mod_pocketDim.world.BiomeGenPocket;
 import StevenDimDoors.mod_pocketDim.world.DDBiomeGenBase;
@@ -74,35 +80,19 @@ import StevenDimDoors.mod_pocketDim.world.LimboProvider;
 import StevenDimDoors.mod_pocketDim.world.PersonalPocketProvider;
 import StevenDimDoors.mod_pocketDim.world.PocketProvider;
 import StevenDimDoors.mod_pocketDim.world.gateways.GatewayGenerator;
-import StevenDimDoors.mod_pocketDimClient.ClientPacketHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import cpw.mods.fml.common.event.FMLServerStoppedEvent;
-import cpw.mods.fml.common.network.NetworkMod;
-import cpw.mods.fml.common.network.NetworkMod.SidedPacketHandler;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
-import cpw.mods.fml.common.registry.TickRegistry;
 import cpw.mods.fml.relauncher.Side;
 
 @Mod(modid = mod_pocketDim.modid, name = "Dimensional Doors", version = mod_pocketDim.version)
-
-@NetworkMod(clientSideRequired = true, serverSideRequired = false, connectionHandler=ConnectionHandler.class,
-clientPacketHandlerSpec =
-@SidedPacketHandler(channels = {PacketConstants.CHANNEL_NAME}, packetHandler = ClientPacketHandler.class),
-serverPacketHandlerSpec =
-@SidedPacketHandler(channels = {PacketConstants.CHANNEL_NAME}, packetHandler = ServerPacketHandler.class))
 public class mod_pocketDim
 {
-	public static final String version = "@VERSION@";
+	public static final String version = "2.2.5-test";
 	public static final String modid = "dimdoors";
 	
 	//TODO need a place to stick all these constants
@@ -148,8 +138,6 @@ public class mod_pocketDim
 	public static BiomeGenBase limboBiome;
 	public static BiomeGenBase pocketBiome;
 
-	public static boolean isPlayerWearingGoogles = false;
-
 	public static DDProperties properties;
 	public static DDWorldProperties worldProperties;
 	public static CustomLimboPopulator spawner; //Added this field temporarily. Will be refactored out later.
@@ -167,15 +155,9 @@ public class mod_pocketDim
 	public static CreativeTabs dimDoorsCreativeTab = new CreativeTabs("dimDoorsCreativeTab") 
 	{
 		@Override
-		public ItemStack getIconItemStack() 
+		public Item getTabIconItem()
 		{
-			return new ItemStack(mod_pocketDim.itemDimensionalDoor, 1, 0);
-		}
-
-		@Override
-		public String getTranslatedTabLabel()
-		{
-			return "Dimensional Doors";
+			return mod_pocketDim.itemDimensionalDoor;
 		}
 	};
 
@@ -191,6 +173,10 @@ public class mod_pocketDim
 		hooks = new EventHookContainer(properties);
 		MinecraftForge.EVENT_BUS.register(hooks);
 		MinecraftForge.TERRAIN_GEN_BUS.register(hooks);
+
+        proxy.registerSidedHooks(properties);
+
+        DimDoorsNetwork.init();
 	}
 
 	@EventHandler
@@ -198,42 +184,42 @@ public class mod_pocketDim
 	{
 		// Initialize ServerTickHandler instance
 		serverTickHandler = new ServerTickHandler();
-		TickRegistry.registerTickHandler(serverTickHandler, Side.SERVER);
+        FMLCommonHandler.instance().bus().register(serverTickHandler);
 		
 		// Initialize LimboDecay instance: required for BlockLimbo
 		limboDecay = new LimboDecay(properties);
 
 		// Initialize blocks and items
-		transientDoor = new TransientDoor(properties.TransientDoorID, Material.iron, properties).setHardness(1.0F) .setUnlocalizedName("transientDoor");
-		goldenDimensionalDoor = new BlockGoldDimDoor(properties.GoldenDimensionalDoorID, Material.iron, properties).setHardness(1.0F) .setUnlocalizedName("dimDoorGold");
+		transientDoor = new TransientDoor(Material.iron, properties).setHardness(1.0F) .setBlockName("transientDoor");
+		goldenDimensionalDoor = new BlockGoldDimDoor(Material.iron, properties).setHardness(1.0F).setBlockName("dimDoorGold").setBlockTextureName("itemGoldDimDoor");
 
-		quartzDoor = new BlockDoorQuartz(properties.QuartzDoorID, Material.rock).setHardness(0.1F).setUnlocalizedName("doorQuartz");
-		personalDimDoor = new PersonalDimDoor(properties.PersonalDimDoorID, Material.rock,properties).setHardness(0.1F).setUnlocalizedName("dimDoorPersonal");
+		quartzDoor = new BlockDoorQuartz(Material.rock).setHardness(0.1F).setBlockName("doorQuartz").setBlockTextureName("itemQuartzDoor");
+		personalDimDoor = new PersonalDimDoor(Material.rock,properties).setHardness(0.1F).setBlockName("dimDoorPersonal").setBlockTextureName("itemQuartzDimDoor");
 
-		goldenDoor = new BlockDoorGold(properties.GoldenDoorID, Material.iron).setHardness(0.1F).setUnlocalizedName("doorGold");
-		blockDimWall = new BlockDimWall(properties.FabricBlockID, 0, Material.iron).setLightValue(1.0F).setHardness(0.1F).setUnlocalizedName("blockDimWall");
-		blockDimWallPerm = (new BlockDimWallPerm(properties.PermaFabricBlockID, 0, Material.iron)).setLightValue(1.0F).setBlockUnbreakable().setResistance(6000000.0F).setUnlocalizedName("blockDimWallPerm");
-		warpDoor = new WarpDoor(properties.WarpDoorID, Material.wood, properties).setHardness(1.0F) .setUnlocalizedName("dimDoorWarp");
-		blockRift = (BlockRift) (new BlockRift(properties.RiftBlockID, 0, Material.air, properties).setHardness(1.0F) .setUnlocalizedName("rift"));
-		blockLimbo = new BlockLimbo(properties.LimboBlockID, 15, Material.iron, properties.LimboDimensionID, limboDecay).setHardness(.2F).setUnlocalizedName("BlockLimbo").setLightValue(.0F);
-		unstableDoor = (new UnstableDoor(properties.UnstableDoorID, Material.iron, properties).setHardness(.2F).setUnlocalizedName("chaosDoor").setLightValue(.0F) );
-		dimensionalDoor = (DimensionalDoor) (new DimensionalDoor(properties.DimensionalDoorID, Material.iron, properties).setHardness(1.0F).setResistance(2000.0F) .setUnlocalizedName("dimDoor"));
-		transTrapdoor = (TransTrapdoor) (new TransTrapdoor(properties.TransTrapdoorID, Material.wood).setHardness(1.0F) .setUnlocalizedName("dimHatch"));
+		goldenDoor = new BlockDoorGold(Material.iron).setHardness(0.1F).setBlockName("doorGold").setBlockTextureName("itemGoldDoor");
+		blockDimWall = new BlockDimWall(0, Material.iron).setLightLevel(1.0F).setHardness(0.1F).setBlockName("blockDimWall");
+		blockDimWallPerm = (new BlockDimWallPerm(0, Material.iron)).setLightLevel(1.0F).setBlockUnbreakable().setResistance(6000000.0F).setBlockName("blockDimWallPerm");
+		warpDoor = new WarpDoor(Material.wood, properties).setHardness(1.0F) .setBlockName("dimDoorWarp").setBlockTextureName("itemDimDoorWarp");
+		blockLimbo = new BlockLimbo(15, Material.iron, properties.LimboDimensionID, limboDecay).setHardness(.2F).setBlockName("BlockLimbo").setLightLevel(.0F);
+		unstableDoor = (new UnstableDoor(Material.iron, properties).setHardness(.2F).setBlockName("chaosDoor").setLightLevel(.0F).setBlockTextureName("itemChaosDoor") );
+		dimensionalDoor = (DimensionalDoor) (new DimensionalDoor(Material.iron, properties).setHardness(1.0F).setResistance(2000.0F) .setBlockName("dimDoor").setBlockTextureName("itemDimDoor"));
+		transTrapdoor = (TransTrapdoor) (new TransTrapdoor(Material.wood).setHardness(1.0F) .setBlockName("dimHatch"));
+        blockRift = (BlockRift) (new BlockRift(Material.fire, properties).setHardness(1.0F) .setBlockName("rift"));
 
-		itemDDKey = (new ItemDDKey(properties.DDKeyItemID)).setUnlocalizedName("itemDDKey");
-		itemQuartzDoor = (new ItemQuartzDoor(properties.QuartzDoorID, Material.rock)).setUnlocalizedName("itemQuartzDoor");
-		itemPersonalDoor = (new ItemPersonalDoor(properties.PersonalDimDoorID, Material.rock, (ItemDoor)this.itemQuartzDoor)).setUnlocalizedName("itemQuartzDimDoor");
-		itemGoldenDoor = (new ItemGoldDoor(properties.GoldenDoorItemID, Material.wood)).setUnlocalizedName("itemGoldDoor");
-		itemGoldenDimensionalDoor = (new ItemGoldDimDoor(properties.GoldenDimensionalDoorItemID, Material.iron, (ItemDoor)this.itemGoldenDoor)).setUnlocalizedName("itemGoldDimDoor");
-		itemDimensionalDoor = (ItemDimensionalDoor) (new ItemDimensionalDoor(properties.DimensionalDoorItemID, Material.iron, (ItemDoor)Item.doorIron)).setUnlocalizedName("itemDimDoor");
-		itemWarpDoor = (new ItemWarpDoor(properties.WarpDoorItemID, Material.wood,(ItemDoor)Item.doorWood)).setUnlocalizedName("itemDimDoorWarp");
-		itemRiftSignature = (new ItemRiftSignature(properties.RiftSignatureItemID)).setUnlocalizedName("itemLinkSignature");
-		itemRiftRemover = (new itemRiftRemover(properties.RiftRemoverItemID, Material.wood)).setUnlocalizedName("itemRiftRemover");
-		itemStableFabric = (new ItemStableFabric(properties.StableFabricItemID, 0)).setUnlocalizedName("itemStableFabric");
-		itemUnstableDoor = (new ItemUnstableDoor(properties.UnstableDoorItemID, Material.iron, null)).setUnlocalizedName("itemChaosDoor");
-		itemRiftBlade = (new ItemRiftBlade(properties.RiftBladeItemID, properties)).setUnlocalizedName("ItemRiftBlade");
-		itemStabilizedRiftSignature = (new ItemStabilizedRiftSignature(properties.StabilizedRiftSignatureItemID)).setUnlocalizedName("itemStabilizedRiftSig");
-		itemWorldThread = (new ItemWorldThread(properties.WorldThreadItemID)).setUnlocalizedName("itemWorldThread");
+		itemDDKey = (new ItemDDKey()).setUnlocalizedName("itemDDKey");
+		itemQuartzDoor = (new ItemQuartzDoor(Material.rock)).setUnlocalizedName("itemQuartzDoor");
+		itemPersonalDoor = (new ItemPersonalDoor(Material.rock, (ItemDoor)this.itemQuartzDoor)).setUnlocalizedName("itemQuartzDimDoor");
+		itemGoldenDoor = (new ItemGoldDoor(Material.wood)).setUnlocalizedName("itemGoldDoor");
+		itemGoldenDimensionalDoor = (new ItemGoldDimDoor(Material.iron, (ItemDoor)this.itemGoldenDoor)).setUnlocalizedName("itemGoldDimDoor");
+		itemDimensionalDoor = (ItemDimensionalDoor) (new ItemDimensionalDoor(Material.iron, (ItemDoor) Items.iron_door)).setUnlocalizedName("itemDimDoor");
+		itemWarpDoor = (new ItemWarpDoor(Material.wood,(ItemDoor)Items.iron_door)).setUnlocalizedName("itemDimDoorWarp");
+		itemRiftSignature = (new ItemRiftSignature()).setUnlocalizedName("itemLinkSignature");
+		itemRiftRemover = (new itemRiftRemover(Material.wood)).setUnlocalizedName("itemRiftRemover");
+		itemStableFabric = (new ItemStableFabric(0)).setUnlocalizedName("itemStableFabric");
+		itemUnstableDoor = (new ItemUnstableDoor(Material.iron, null)).setUnlocalizedName("itemChaosDoor");
+		itemRiftBlade = (new ItemRiftBlade(properties)).setUnlocalizedName("ItemRiftBlade");
+		itemStabilizedRiftSignature = (new ItemStabilizedRiftSignature()).setUnlocalizedName("itemStabilizedRiftSig");
+		itemWorldThread = (new ItemWorldThread()).setUnlocalizedName("itemWorldThread");
 		
 		// Check if other biomes have been registered with the same IDs we want. If so, crash Minecraft
 		// to notify the user instead of letting it pass and conflicting with Biomes o' Plenty.
@@ -243,20 +229,36 @@ public class mod_pocketDim
 		mod_pocketDim.limboBiome = (new BiomeGenLimbo(properties.LimboBiomeID));
 		mod_pocketDim.pocketBiome = (new BiomeGenPocket(properties.PocketBiomeID));
 
-		GameRegistry.registerBlock(quartzDoor, "Quartz Door");
-		GameRegistry.registerBlock(personalDimDoor, "Personal Dimensional Door");
-		GameRegistry.registerBlock(goldenDoor, "Golden Door");
-		GameRegistry.registerBlock(goldenDimensionalDoor, "Golden Dimensional Door");
-		GameRegistry.registerBlock(unstableDoor, "Unstable Door");
-		GameRegistry.registerBlock(warpDoor, "Warp Door");
+		GameRegistry.registerBlock(quartzDoor, null, "Quartz Door");
+		GameRegistry.registerBlock(personalDimDoor, null, "Personal Dimensional Door");
+		GameRegistry.registerBlock(goldenDoor, null, "Golden Door");
+		GameRegistry.registerBlock(goldenDimensionalDoor, null, "Golden Dimensional Door");
+		GameRegistry.registerBlock(unstableDoor, null, "Unstable Door");
+		GameRegistry.registerBlock(warpDoor, null, "Warp Door");
 		GameRegistry.registerBlock(blockRift, "Rift");
 		GameRegistry.registerBlock(blockLimbo, "Unraveled Fabric");
-		GameRegistry.registerBlock(dimensionalDoor, "Dimensional Door");
+		GameRegistry.registerBlock(dimensionalDoor, null, "Dimensional Door");
 		GameRegistry.registerBlock(transTrapdoor,"Transdimensional Trapdoor");
 		GameRegistry.registerBlock(blockDimWallPerm, "Fabric of RealityPerm");
 		GameRegistry.registerBlock(transientDoor, "transientDoor");
+        GameRegistry.registerItem(itemDDKey, "Rift Key");
+        GameRegistry.registerItem(itemQuartzDoor, "Quartz Door Item");
+        GameRegistry.registerItem(itemPersonalDoor, "Personal Dimensional Door Item");
+        GameRegistry.registerItem(itemGoldenDoor, "Golden Door Item");
+        GameRegistry.registerItem(itemGoldenDimensionalDoor, "Golden Dimensional Door Item");
+        GameRegistry.registerItem(itemDimensionalDoor, "Dimensional Door Item");
+        GameRegistry.registerItem(itemWarpDoor, "Warp Door Item");
+        GameRegistry.registerItem(itemRiftSignature, "Rift Signature");
+        GameRegistry.registerItem(itemRiftRemover, "Rift Remover");
+        GameRegistry.registerItem(itemStableFabric, "Stable Fabric Item");
+        GameRegistry.registerItem(itemUnstableDoor, "Unstable Door Item");
+        GameRegistry.registerItem(itemRiftBlade, "Rift Blade");
+        GameRegistry.registerItem(itemStabilizedRiftSignature, "Stabilized Rift Signature");
+        GameRegistry.registerItem(itemWorldThread, "World Thread");
 
 		GameRegistry.registerBlock(blockDimWall, ItemBlockDimWall.class, "Fabric of Reality");
+
+        BlockRotator.setupOrientations();
 
 		if (!DimensionManager.registerProviderType(properties.PocketProviderID, PocketProvider.class, false))
 			throw new IllegalStateException("There is a provider ID conflict between PocketProvider from Dimensional Doors and another provider type. Fix your configuration!");
@@ -266,97 +268,40 @@ public class mod_pocketDim
 			throw new IllegalStateException("There is a provider ID conflict between PersonalPocketProvider from Dimensional Doors and another provider type. Fix your configuration!");
 			
 		DimensionManager.registerDimension(properties.LimboDimensionID, properties.LimboProviderID);
-		
-		LanguageRegistry.addName(goldenDoor, "Golden Door");
-		LanguageRegistry.addName(goldenDimensionalDoor, "Golden Dimensional Door");
-		LanguageRegistry.addName(transientDoor	, "Transient Door");
-		LanguageRegistry.addName(blockRift	, "Rift");
-		LanguageRegistry.addName(blockLimbo	, "Unraveled Fabric");
-		LanguageRegistry.addName(warpDoor	, "Warp Door");
-		LanguageRegistry.addName(unstableDoor	, "Unstable Door");
-		LanguageRegistry.addName(blockDimWall	, "Fabric of Reality");
-		LanguageRegistry.addName(blockDimWallPerm	, "Eternal Fabric");
-		LanguageRegistry.addName(dimensionalDoor, "Dimensional Door");
-		LanguageRegistry.addName(transTrapdoor, "Transdimensional Trapdoor");
 
-		LanguageRegistry.addName(itemWarpDoor, "Warp Door");
-		LanguageRegistry.addName(itemRiftSignature, "Rift Signature");
-		LanguageRegistry.addName(itemGoldenDoor, "Golden Door");
-		LanguageRegistry.addName(itemGoldenDimensionalDoor, "Golden Dimensional Door");
-		LanguageRegistry.addName(itemStabilizedRiftSignature, "Stabilized Rift Signature");
-		LanguageRegistry.addName(itemRiftRemover, "Rift Remover");
-		LanguageRegistry.addName(itemStableFabric, "Stable Fabric");
-		LanguageRegistry.addName(itemUnstableDoor, "Unstable Door");
-		LanguageRegistry.addName(itemDimensionalDoor, "Dimensional Door");
-		LanguageRegistry.addName(itemRiftBlade, "Rift Blade");
-		LanguageRegistry.addName(itemWorldThread, "World Thread");
-		LanguageRegistry.addName(itemDDKey, "Rift Key");
-		LanguageRegistry.addName(itemQuartzDoor, "Quartz Door");
-		LanguageRegistry.addName(itemPersonalDoor, "Personal Dimensional Door");
-
-
-		/**
-		 * Add names for multiblock inventory item
-		 */
-		LanguageRegistry.addName(new ItemStack(blockDimWall, 1, 0), "Fabric of Reality");
-		LanguageRegistry.addName(new ItemStack(blockDimWall, 1, 1), "Ancient Fabric");
-		LanguageRegistry.addName(new ItemStack(blockDimWall, 1, 2), "Altered Fabric");
-
-		LanguageRegistry.instance().addStringLocalization("itemGroup.dimDoorsCustomTab", "en_US", "Dimensional Doors Items");
-
-		GameRegistry.registerTileEntity(TileEntityDimDoor.class, "TileEntityDimDoor");
-		GameRegistry.registerTileEntity(TileEntityRift.class, "TileEntityRift");
-		GameRegistry.registerTileEntity(TileEntityTransTrapdoor.class, "TileEntityDimHatch");
-		GameRegistry.registerTileEntity(TileEntityDimDoorGold.class, "TileEntityDimDoorGold");
+        GameRegistry.registerTileEntity(TileEntityDimDoor.class, "TileEntityDimDoor");
+        GameRegistry.registerTileEntity(TileEntityRift.class, "TileEntityRift");
+        GameRegistry.registerTileEntity(TileEntityTransTrapdoor.class, "TileEntityDimHatch");
+        GameRegistry.registerTileEntity(TileEntityDimDoorGold.class, "TileEntityDimDoorGold");
 
 		EntityRegistry.registerModEntity(MobMonolith.class, "Monolith", properties.MonolithEntityID, this, 70, 1, true);
 		EntityList.IDtoClassMapping.put(properties.MonolithEntityID, MobMonolith.class);
-		EntityList.entityEggs.put(properties.MonolithEntityID, new EntityEggInfo(properties.MonolithEntityID, 0, 0xffffff));
-		LanguageRegistry.instance().addStringLocalization("entity.dimdoors.Monolith.name", "Monolith");
+		EntityList.entityEggs.put(properties.MonolithEntityID, new EntityList.EntityEggInfo(properties.MonolithEntityID, 0, 0xffffff));
 
 		CraftingManager.registerRecipes(properties);
 		CraftingManager.registerDispenserBehaviors();
-		GameRegistry.registerCraftingHandler(new CraftingManager());
+        FMLCommonHandler.instance().bus().register(new CraftingManager());
 
 		DungeonHelper.initialize();
 		gatewayGenerator = new GatewayGenerator(properties);
-		GameRegistry.registerWorldGenerator(mod_pocketDim.gatewayGenerator);
+		GameRegistry.registerWorldGenerator(mod_pocketDim.gatewayGenerator, 0);
 
 		// Register loot chests
 		DDLoot.registerInfo(properties);
 		proxy.loadTextures();
 		proxy.registerRenderers();
-		
-		LSystem.generateLSystem("terdragon", LSystem.TERDRAGON, 4);
-		LSystem.generateLSystem("terdragon", LSystem.TERDRAGON, 5);
-	//	LSystem.generateLSystem("terdragon", LSystem.TERDRAGON, 6); //degenerate
-		LSystem.generateLSystem("terdragon", LSystem.TERDRAGON, 7);
-	//	LSystem.generateLSystem("terdragon", LSystem.TERDRAGON, 8);
-	//	LSystem.generateLSystem("terdragon", LSystem.TERDRAGON, 9);
-
-		
-	//	LSystem.generateLSystem("vortex", LSystem.VORTEX, 8);
-		LSystem.generateLSystem("vortex", LSystem.VORTEX, 9);
-		LSystem.generateLSystem("vortex", LSystem.VORTEX, 10);
-		LSystem.generateLSystem("vortex", LSystem.VORTEX, 11);
-	//	LSystem.generateLSystem("vortex", LSystem.VORTEX, 12);
-
-		LSystem.generateLSystem("twindragon", LSystem.TWINDRAGON, 7);
-		LSystem.generateLSystem("twindragon", LSystem.TWINDRAGON, 8);
-		LSystem.generateLSystem("twindragon", LSystem.TWINDRAGON, 9);
-		LSystem.generateLSystem("twindragon", LSystem.TWINDRAGON, 10);
-	//	LSystem.generateLSystem("twindragon", LSystem.TWINDRAGON, 11);
-
-		
-		LSystem.generateLSystem("dragon", LSystem.DRAGON, 8);
-		LSystem.generateLSystem("dragon", LSystem.DRAGON, 9);
-		LSystem.generateLSystem("dragon", LSystem.DRAGON, 10);
-		LSystem.generateLSystem("dragon", LSystem.DRAGON, 11);
-	//	LSystem.generateLSystem("dragon", LSystem.DRAGON, 12);
-	//	LSystem.generateLSystem("dragon", LSystem.DRAGON, 13);
-
-
+        FMLCommonHandler.instance().bus().register(new ConnectionHandler());
 	}
+
+    public static void translateAndAdd(String key, List list) {
+        for (int i=0;i<10;i++) {
+            if (StatCollector.canTranslate(key+Integer.toString(i))) {
+                String line = StatCollector.translateToLocal(key + Integer.toString(i));
+                list.add(line);
+            } else
+                break;
+        }
+    }
 
 	@EventHandler
 	public void onPostInitialization(FMLPostInitializationEvent event)
@@ -442,8 +387,7 @@ public class mod_pocketDim
 	
 	public static void sendChat(EntityPlayer player, String message)
 	{
-		ChatMessageComponent cmp = new ChatMessageComponent();
-		cmp.addText(message);
-		player.sendChatToPlayer(cmp);
+        ChatComponentText text = new ChatComponentText(message);
+        player.addChatComponentMessage(text);
 	}
 }

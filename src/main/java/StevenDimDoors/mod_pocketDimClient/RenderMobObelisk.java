@@ -1,5 +1,6 @@
 package StevenDimDoors.mod_pocketDimClient;
 
+import StevenDimDoors.mod_pocketDim.world.LimboProvider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.entity.RenderLiving;
@@ -29,17 +30,20 @@ public class RenderMobObelisk extends RenderLiving
 	}
 
 	@Override
-	public void doRenderLiving(EntityLiving entity, double x, double y, double z, float par8, float par9)
+	public void doRender(EntityLiving entity, double x, double y, double z, float par8, float par9)
 	{
 		final float minScaling = 0;
 		final float maxScaling = 0.1f;
 		MobMonolith monolith = ((MobMonolith) entity);
 
-		// Use linear interpolation to scale how much jitter we want for our given aggro level
-		float aggroScaling = minScaling + (maxScaling - minScaling) * monolith.getAggroProgress();
+        float aggroScaling = 0;
+        if (monolith.isDangerous()) {
+            // Use linear interpolation to scale how much jitter we want for our given aggro level
+            aggroScaling = minScaling + (maxScaling - minScaling) * monolith.getAggroProgress();
+        }
 
 		// Calculate jitter - include entity ID to give Monoliths individual jitters
-		float time = ((Minecraft.getSystemTime() + 0xF1234568 * monolith.entityId) % 200000) / 50.0F;
+		float time = ((Minecraft.getSystemTime() + 0xF1234568 * monolith.getEntityId()) % 200000) / 50.0F;
 		// We use random constants here on purpose just to get different wave forms
 		double xJitter = aggroScaling * Math.sin(1.1f * time) * Math.sin(0.8f * time);
 		double yJitter = aggroScaling * Math.sin(1.2f * time) * Math.sin(0.9f * time);
@@ -52,13 +56,11 @@ public class RenderMobObelisk extends RenderLiving
 
 	public void render(EntityLiving par1EntityLivingBase, double x, double y, double z, float par8, float par9)
 	{
-		if (MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Pre(par1EntityLivingBase, this))) return;  	
+		if (MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Pre(par1EntityLivingBase, this, x, y, z))) return;
 		GL11.glPushMatrix();
 		GL11.glDisable(GL11.GL_CULL_FACE);
 		GL11.glDisable(GL11.GL_LIGHTING);
 		GL11.glEnable(GL11.GL_BLEND);
-		GL11.glDisable(GL11.GL_DEPTH_TEST);
-		GL11.glDepthMask(false);
 		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 		this.mainModel.onGround = this.renderSwingProgress(par1EntityLivingBase, par9);
 
@@ -101,10 +103,8 @@ public class RenderMobObelisk extends RenderLiving
 		GL11.glEnable(GL11.GL_CULL_FACE);
 		GL11.glEnable(GL11.GL_LIGHTING);
 		GL11.glDisable(GL11.GL_BLEND);
-		GL11.glEnable(GL11.GL_DEPTH_TEST);
-		GL11.glDepthMask(true);
 		GL11.glPopMatrix();
-		MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Post(par1EntityLivingBase, this));
+		MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Post(par1EntityLivingBase, this, x, y, z));
 	}
 	
 	private static float interpolateRotation(float par1, float par2, float par3)
@@ -125,6 +125,6 @@ public class RenderMobObelisk extends RenderLiving
 	protected ResourceLocation getEntityTexture(Entity entity) 
 	{
 		MobMonolith monolith = (MobMonolith) entity;
-		return new ResourceLocation(mod_pocketDim.modid + ":textures/mobs/Monolith" + monolith.getTextureState() + ".png");
+		return new ResourceLocation(mod_pocketDim.modid + ":textures/mobs/oldMonolith/Monolith" + monolith.getTextureState() + ".png");
 	}
 }

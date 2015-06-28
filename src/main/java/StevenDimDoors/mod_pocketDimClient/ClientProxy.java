@@ -1,4 +1,5 @@
 package StevenDimDoors.mod_pocketDimClient;
+import StevenDimDoors.mod_pocketDim.config.DDProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import StevenDimDoors.mod_pocketDim.CommonProxy;
@@ -12,6 +13,7 @@ import StevenDimDoors.mod_pocketDim.tileentities.TileEntityTransTrapdoor;
 import StevenDimDoors.mod_pocketDim.watcher.ClientLinkData;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
+import net.minecraftforge.common.MinecraftForge;
 
 
 public class ClientProxy extends CommonProxy
@@ -23,8 +25,6 @@ public class ClientProxy extends CommonProxy
 		//MinecraftForgeClient.preloadTexture(BLOCK_PNG);
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityDimDoor.class, new RenderDimDoor());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityTransTrapdoor.class, new RenderTransTrapdoor());
-        //This code activates the new rift rendering, as well as a bit of code in TileEntityRift
-        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRift.class, new RenderRift());
         
 		//MinecraftForgeClient.preloadTexture(RIFT2_PNG);
        RenderingRegistry.registerEntityRenderingHandler(MobMonolith.class, new RenderMobObelisk(.5F));		
@@ -35,14 +35,14 @@ public class ClientProxy extends CommonProxy
 	@Override
 	public void updateDoorTE(BaseDimDoor door, World world, int x, int y, int z)
 	{
-		TileEntity tile = world.getBlockTileEntity(x, y, z);
+		TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile instanceof TileEntityDimDoor)
 		{
 			DimLink link = PocketManager.getLink(x, y, z, world);
 			int metadata = world.getBlockMetadata(x, y, z);
 			TileEntityDimDoor dimTile = (TileEntityDimDoor) tile;			
 			dimTile.openOrClosed = door.isDoorOnRift(world, x, y, z)&&door.isUpperDoorBlock(metadata);
-			dimTile.orientation = door.getFullMetadata(world, x, y, z) & 7;
+			dimTile.orientation = door.func_150012_g(world, x, y, z) & 7;
 			dimTile.lockStatus = door.getLockStatus(world, x, y, z);
 		}
 	}
@@ -51,5 +51,13 @@ public class ClientProxy extends CommonProxy
 	public  void printStringClient(String string)
 	{	
 	}
-	
+
+    @Override
+    public void registerSidedHooks(DDProperties properties) {
+        ClientOnlyHooks hooks = new ClientOnlyHooks(properties);
+        MinecraftForge.EVENT_BUS.register(hooks);
+        MinecraftForge.TERRAIN_GEN_BUS.register(hooks);
+        PocketManager.getDimwatcher().registerReceiver (new PocketManager.ClientDimWatcher());
+        PocketManager.getLinkWatcher().registerReceiver(new PocketManager.ClientLinkWatcher());
+    }
 }

@@ -13,18 +13,16 @@ import StevenDimDoors.mod_pocketDim.blocks.BaseDimDoor;
 public class ItemGoldDimDoor extends BaseItemDoor
 {
 
-	public ItemGoldDimDoor(int itemID, Material material, ItemDoor door)
+	public ItemGoldDimDoor(Material material, ItemDoor door)
     {
-  	  super(itemID, material, door);
+  	  super(material, door);
     }
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void addInformation(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, List par3List, boolean par4)
 	{
-		par3List.add("Similar to a Dimensional Door");
-		par3List.add("but keeps a pocket dimension");
-		par3List.add("loaded if placed on the inside.");
+        mod_pocketDim.translateAndAdd("info.goldDimDoor", par3List);
 	}
 
 	@Override

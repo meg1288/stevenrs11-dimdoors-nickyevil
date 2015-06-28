@@ -9,8 +9,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.TreeMap;
+
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntitySign;
@@ -36,15 +39,6 @@ import StevenDimDoors.mod_pocketDim.util.Point4D;
 
 public class DungeonSchematic extends Schematic {
 
-	private static final short MAX_VANILLA_BLOCK_ID = 173;
-	private static final short STANDARD_FABRIC_OF_REALITY_ID = 1973;
-	private static final short STANDARD_ETERNAL_FABRIC_ID = 220;
-	private static final short STANDARD_WARP_DOOR_ID = 1975;
-	private static final short STANDARD_DIMENSIONAL_DOOR_ID = 1970;
-	private static final short STANDARD_TRANSIENT_DOOR_ID = 1979;
-
-	private static final short MONOLITH_SPAWN_MARKER_ID = (short) Block.endPortalFrame.blockID;
-	private static final short EXIT_DOOR_MARKER_ID = (short) Block.sandStone.blockID;
 	private static final int NETHER_DIMENSION_ID = -1;
 	
 	private int orientation;
@@ -52,18 +46,17 @@ public class DungeonSchematic extends Schematic {
 	private ArrayList<Point3D> exitDoorLocations;
 	private ArrayList<Point3D> dimensionalDoorLocations;
 	private ArrayList<Point3D> monolithSpawnLocations;
-	
-	private static final short[] MOD_BLOCK_FILTER_EXCEPTIONS = new short[] {
-		STANDARD_FABRIC_OF_REALITY_ID,
-		STANDARD_ETERNAL_FABRIC_ID,
-		STANDARD_WARP_DOOR_ID,
-		STANDARD_DIMENSIONAL_DOOR_ID,
-		STANDARD_TRANSIENT_DOOR_ID
-	};
-	
+	private ArrayList<Block> modBlockFilterExceptions;
+
 	private DungeonSchematic(Schematic source)
 	{
 		super(source);
+        modBlockFilterExceptions = new ArrayList<Block>(5);
+        modBlockFilterExceptions.add(mod_pocketDim.blockDimWall);
+        modBlockFilterExceptions.add(mod_pocketDim.blockDimWallPerm);
+        modBlockFilterExceptions.add(mod_pocketDim.warpDoor);
+        modBlockFilterExceptions.add(mod_pocketDim.dimensionalDoor);
+        modBlockFilterExceptions.add(mod_pocketDim.transientDoor);
 	}
 	
 	public int getOrientation()
@@ -108,12 +101,12 @@ public class DungeonSchematic extends Schematic {
 	public void applyImportFilters(DDProperties properties)
 	{
 		//Search for special blocks (warp doors, dim doors, and end portal frames that mark Monolith spawn points)
-		SpecialBlockFinder finder = new SpecialBlockFinder(STANDARD_WARP_DOOR_ID, STANDARD_DIMENSIONAL_DOOR_ID,
-				MONOLITH_SPAWN_MARKER_ID, EXIT_DOOR_MARKER_ID);
+		SpecialBlockFinder finder = new SpecialBlockFinder(mod_pocketDim.warpDoor, mod_pocketDim.dimensionalDoor,
+				Blocks.end_portal_frame, Blocks.sandstone);
 		applyFilter(finder);
 		
 		//Flip the entrance's orientation to get the dungeon's orientation
-		orientation = BlockRotator.transformMetadata(finder.getEntranceOrientation(), 2, Block.doorWood.blockID);
+		orientation = BlockRotator.transformMetadata(finder.getEntranceOrientation(), 2, Blocks.wooden_door);
 
 		entranceDoorLocation = finder.getEntranceDoorLocation();
 		exitDoorLocations = finder.getExitDoorLocations();
@@ -122,19 +115,10 @@ public class DungeonSchematic extends Schematic {
 		
 		//Filter out mod blocks except some of our own
 		CompoundFilter standardizer = new CompoundFilter();
-		standardizer.addFilter(new ModBlockFilter(MAX_VANILLA_BLOCK_ID, MOD_BLOCK_FILTER_EXCEPTIONS,
-				(short) properties.FabricBlockID, (byte) 0));
+		standardizer.addFilter(new ModBlockFilter(modBlockFilterExceptions,
+                mod_pocketDim.blockDimWall, (byte) 0));
 		
 		//Also convert standard DD block IDs to local versions
-		Map<Short, Short> mapping = getAssignedToStandardIDMapping(properties);
-		
-		for (Entry<Short, Short> entry : mapping.entrySet())
-		{
-			if (entry.getKey() != entry.getValue())
-			{
-				standardizer.addFilter(new ReplacementFilter(entry.getValue(), entry.getKey()));
-			}
-		}
 		applyFilter(standardizer);
 	}
 	
@@ -143,36 +127,15 @@ public class DungeonSchematic extends Schematic {
 		//Check if some block IDs assigned by Forge differ from our standard IDs
 		//If so, change the IDs to standard values
 		CompoundFilter standardizer = new CompoundFilter();
-		Map<Short, Short> mapping = getAssignedToStandardIDMapping(properties);
-		
-		for (Entry<Short, Short> entry : mapping.entrySet())
-		{
-			if (entry.getKey() != entry.getValue())
-			{
-				standardizer.addFilter(new ReplacementFilter(entry.getKey(), entry.getValue()));
-			}
-		}
 		
 		//Filter out mod blocks except some of our own
 		//This comes after ID standardization because the mod block filter relies on standardized IDs
-		standardizer.addFilter(new ModBlockFilter(MAX_VANILLA_BLOCK_ID, MOD_BLOCK_FILTER_EXCEPTIONS,
-				STANDARD_FABRIC_OF_REALITY_ID, (byte) 0));
+		standardizer.addFilter(new ModBlockFilter(modBlockFilterExceptions,
+				mod_pocketDim.blockDimWall, (byte) 0));
 		
 		applyFilter(standardizer);
 	}
-	
-	private static Map<Short, Short> getAssignedToStandardIDMapping(DDProperties properties)
-	{
-		//If we ever need this broadly or support other mods, this should be moved to a separate class
-		TreeMap<Short, Short> mapping = new TreeMap<Short, Short>();
-		mapping.put((short) properties.FabricBlockID, STANDARD_FABRIC_OF_REALITY_ID);
-		mapping.put((short) properties.PermaFabricBlockID, STANDARD_ETERNAL_FABRIC_ID);
-		mapping.put((short) properties.WarpDoorID, STANDARD_WARP_DOOR_ID);
-		mapping.put((short) properties.DimensionalDoorID, STANDARD_DIMENSIONAL_DOOR_ID);
-		mapping.put((short) properties.TransientDoorID, STANDARD_TRANSIENT_DOOR_ID);
-		return mapping;
-	}
-	
+
 	public static DungeonSchematic copyFromWorld(World world, int x, int y, int z, short width, short height, short length, boolean doCompactBounds)
 	{
 		return new DungeonSchematic(Schematic.copyFromWorld(world, x, y, z, width, height, length, doCompactBounds));
@@ -203,7 +166,7 @@ public class DungeonSchematic extends Schematic {
 		
 		int index;
 		int count;
-		int blockID;
+		Block block;
 		int blockMeta;
 		int dx, dy, dz;
 		Point3D pocketPoint = new Point3D(0, 0, 0);
@@ -219,12 +182,12 @@ public class DungeonSchematic extends Schematic {
 					pocketPoint.setX(dx);
 					pocketPoint.setY(dy);
 					pocketPoint.setZ(dz);
-					blockID = blocks[index];
+					block = blocks[index];
 					BlockRotator.transformPoint(pocketPoint, entranceDoorLocation, turnAngle, pocketCenter);
-					blockMeta = BlockRotator.transformMetadata(metadata[index], turnAngle, blockID);
+					blockMeta = BlockRotator.transformMetadata(metadata[index], turnAngle, block);
 
 					//In the future, we might want to make this more efficient by building whole chunks at a time
-					blockSetter.setBlock(world, pocketPoint.getX(), pocketPoint.getY(), pocketPoint.getZ(), blockID, blockMeta);
+					blockSetter.setBlock(world, pocketPoint.getX(), pocketPoint.getY(), pocketPoint.getZ(), block, blockMeta);
 					index++;
 				}
 			}
@@ -233,7 +196,7 @@ public class DungeonSchematic extends Schematic {
 		count = tileEntities.tagCount();
 		for (index = 0; index < count; index++)
 		{
-			NBTTagCompound tileTag = (NBTTagCompound) tileEntities.tagAt(index);
+			NBTTagCompound tileTag = (NBTTagCompound) tileEntities.getCompoundTagAt(index);
 			//Rewrite its location to be in world coordinates
 			pocketPoint.setX(tileTag.getInteger("x"));
 			pocketPoint.setY(tileTag.getInteger("y"));
@@ -243,7 +206,7 @@ public class DungeonSchematic extends Schematic {
 			tileTag.setInteger("y", pocketPoint.getY());
 			tileTag.setInteger("z", pocketPoint.getZ());
 			//Load the tile entity and put it in the world
-			world.setBlockTileEntity(pocketPoint.getX(), pocketPoint.getY(), pocketPoint.getZ(), TileEntity.createAndLoadEntity(tileTag));
+			world.setTileEntity(pocketPoint.getX(), pocketPoint.getY(), pocketPoint.getZ(), TileEntity.createAndLoadEntity(tileTag));
 		}
 		
 		setUpDungeon(PocketManager.createDimensionData(world), world, pocketCenter, turnAngle, entryLink, random, properties, blockSetter);
@@ -341,9 +304,9 @@ public class DungeonSchematic extends Schematic {
 		int z = location.getZ();
 		if (y >= 0)
 		{
-			int blockID = world.getBlockId(x, y, z);
+			Block block = world.getBlock(x, y, z);
 			int metadata = world.getBlockMetadata(x, y, z);
-			blockSetter.setBlock(world, x, y + 1, z, blockID, metadata);
+			blockSetter.setBlock(world, x, y + 1, z, block, metadata);
 		}
 		initDoorTileEntity(world, location);
 	}
@@ -365,7 +328,7 @@ public class DungeonSchematic extends Schematic {
 		Point3D location = point.clone();
 		BlockRotator.transformPoint(location, entrance, rotation, pocketCenter);
 		//Remove frame block
-		blockSetter.setBlock(world, location.getX(), location.getY(), location.getZ(), 0, 0);
+		blockSetter.setBlock(world, location.getX(), location.getY(), location.getZ(), Blocks.air, 0);
 		//Spawn Monolith
 		if (canSpawn)
 		{
@@ -377,8 +340,8 @@ public class DungeonSchematic extends Schematic {
 
 	private static void initDoorTileEntity(World world, Point3D point)
 	{
-		Block door = Block.blocksList[world.getBlockId(point.getX(), point.getY(), point.getZ())];
-		Block door2 = Block.blocksList[world.getBlockId(point.getX(), point.getY() - 1, point.getZ())];
+		Block door = world.getBlock(point.getX(), point.getY(), point.getZ());
+		Block door2 = world.getBlock(point.getX(), point.getY() - 1, point.getZ());
 
 		if (door instanceof IDimDoor && door2 instanceof IDimDoor)
 		{
@@ -395,7 +358,8 @@ public class DungeonSchematic extends Schematic {
 	{
 		final int SEARCH_RANGE = 6;
 		
-		int x, y, z, block;
+		int x, y, z;
+        Block block;
 		int dx, dy, dz;
 		
 		for (dy = SEARCH_RANGE; dy >= -SEARCH_RANGE; dy--)
@@ -407,12 +371,12 @@ public class DungeonSchematic extends Schematic {
 					x = pocketCenter.getX() + dx;
 					y = pocketCenter.getY() + dy;
 					z = pocketCenter.getZ() + dz;
-					block = world.getBlockId(x, y, z);
-					if (block == Block.signWall.blockID || block == Block.signPost.blockID)
+					block = world.getBlock(x, y, z);
+					if (block == Blocks.wall_sign || block == Blocks.standing_sign)
 					{
 						TileEntitySign signEntity = new TileEntitySign();
 						signEntity.signText[1] = "Level " + depth;
-						world.setBlockTileEntity(x, y, z, signEntity);
+						world.setTileEntity(x, y, z, signEntity);
 						return;
 					}
 				}

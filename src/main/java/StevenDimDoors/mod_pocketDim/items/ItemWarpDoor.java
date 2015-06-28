@@ -12,19 +12,16 @@ import StevenDimDoors.mod_pocketDim.blocks.BaseDimDoor;
 
 public class ItemWarpDoor extends BaseItemDoor
 {
-	public ItemWarpDoor(int itemID, Material material, ItemDoor door)
+	public ItemWarpDoor(Material material, ItemDoor door)
 	{
-		super(itemID, material, door);
+		super(material, door);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void addInformation(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, List par3List, boolean par4)
 	{
-		par3List.add("Place on the block under");
-		par3List.add("a rift to create a portal,");
-		par3List.add("or place anywhere in a");
-		par3List.add("pocket dimension to exit.");
+        mod_pocketDim.translateAndAdd("info.warpDoor",par3List);
 	}
     
 	@Override

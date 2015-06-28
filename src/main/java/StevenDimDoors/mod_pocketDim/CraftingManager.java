@@ -1,9 +1,13 @@
 package StevenDimDoors.mod_pocketDim;
 
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDispenser;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -12,10 +16,9 @@ import StevenDimDoors.mod_pocketDim.config.DDProperties;
 import StevenDimDoors.mod_pocketDim.core.DDLock;
 import StevenDimDoors.mod_pocketDim.items.ItemDDKey;
 import StevenDimDoors.mod_pocketDim.items.behaviors.DispenserBehaviorStabilizedRS;
-import cpw.mods.fml.common.ICraftingHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
 
-public class CraftingManager implements ICraftingHandler
+public class CraftingManager
 {
 	CraftingManager() { }
 	
@@ -27,19 +30,19 @@ public class CraftingManager implements ICraftingHandler
 			{
 				case 1:
 					GameRegistry.addShapelessRecipe(new ItemStack(mod_pocketDim.itemStableFabric, 1),
-						Item.enderPearl, mod_pocketDim.itemWorldThread);
+						Items.ender_pearl, mod_pocketDim.itemWorldThread);
 					break;
 				case 2:
 					GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemStableFabric, 1),
-						"yxy", 'x', Item.enderPearl, 'y', mod_pocketDim.itemWorldThread);
+						"yxy", 'x', Items.ender_pearl, 'y', mod_pocketDim.itemWorldThread);
 					break;
 				case 3:
 					GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemStableFabric, 1),
-						" y ", "yxy", " y ", 'x', Item.enderPearl, 'y', mod_pocketDim.itemWorldThread);
+						" y ", "yxy", " y ", 'x', Items.ender_pearl, 'y', mod_pocketDim.itemWorldThread);
 					break;
 				default:
 					GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemStableFabric, 1),
-						"yyy", "yxy", "yyy", 'x', Item.enderPearl, 'y', mod_pocketDim.itemWorldThread);
+						"yyy", "yxy", "yyy", 'x', Items.ender_pearl, 'y', mod_pocketDim.itemWorldThread);
 					break;
 			}
 		}
@@ -47,47 +50,47 @@ public class CraftingManager implements ICraftingHandler
 		if (properties.CraftingDimensionalDoorAllowed)
 		{
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemDimensionalDoor, 1),
-				"yxy", 'x', mod_pocketDim.itemStableFabric, 'y', Item.doorIron);
+				"yxy", 'x', mod_pocketDim.itemStableFabric, 'y', Items.iron_door);
 		}
 		if (properties.CraftingUnstableDoorAllowed)
 		{
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemUnstableDoor, 1),
-				"yxy", 'x', Item.eyeOfEnder, 'y', mod_pocketDim.itemDimensionalDoor);
+				"yxy", 'x', Items.ender_eye, 'y', mod_pocketDim.itemDimensionalDoor);
 		}
 		if (properties.CraftingWarpDoorAllowed)
 		{
 
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemWarpDoor, 1),
-				"yxy", 'x', Item.enderPearl, 'y', Item.doorWood);
+				"yxy", 'x', Items.ender_pearl, 'y', Items.wooden_door);
 		}
 		if (properties.CraftingTransTrapdoorAllowed)
 		{
 
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.transTrapdoor, 1),
-				"y", "x", "y", 'x', Item.enderPearl, 'y', Block.trapdoor);
+				"y", "x", "y", 'x', Items.ender_pearl, 'y', Blocks.trapdoor);
 		}
 		if (properties.CraftingRiftSignatureAllowed)
 		{
 
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemRiftSignature, 1),
-				" y ", "yxy", " y ", 'x', Item.enderPearl, 'y', Item.ingotIron);
+				" y ", "yxy", " y ", 'x', Items.ender_pearl, 'y', Items.iron_ingot);
 		}
 		if (properties.CraftingRiftRemoverAllowed)
 		{
 
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemRiftRemover, 1),
-				"yyy", "yxy", "yyy", 'x', Item.enderPearl, 'y', Item.ingotGold);
+				"yyy", "yxy", "yyy", 'x', Items.ender_pearl, 'y', Items.gold_ingot);
 		}
 		if (properties.CraftingRiftBladeAllowed)
 		{
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemRiftBlade, 1),
-				"x", "x", "y", 'x', mod_pocketDim.itemStableFabric, 'y', Item.blazeRod);
+				"x", "x", "y", 'x', mod_pocketDim.itemStableFabric, 'y', Items.blaze_rod);
 		}
 		if (properties.CraftingStabilizedRiftSignatureAllowed)
 		{
 
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemStabilizedRiftSignature, 1),
-				" y ", "yxy", " y ", 'x', mod_pocketDim.itemStableFabric, 'y', Item.ingotIron);
+				" y ", "yxy", " y ", 'x', mod_pocketDim.itemStableFabric, 'y', Items.iron_ingot);
 		}
 		if (properties.CraftingGoldenDimensionalDoorAllowed)
 		{
@@ -97,12 +100,12 @@ public class CraftingManager implements ICraftingHandler
 		if (properties.CraftingGoldenDoorAllowed)
 		{
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemGoldenDoor, 1),
-				"yy", "yy", "yy", 'y', Item.ingotGold);
+				"yy", "yy", "yy", 'y', Items.gold_ingot);
 		}
 		if (properties.CraftingPersonalDimDoorAllowed)
 		{
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemPersonalDoor,1),
-				"yxy", 'y', mod_pocketDim.itemGoldenDoor, 'x', mod_pocketDim.itemStableFabric);
+				"yxy", 'y', mod_pocketDim.itemQuartzDoor, 'x', mod_pocketDim.itemStableFabric);
 		}
 		if (properties.CraftingQuartzDoorAllowed)
 		{
@@ -114,26 +117,26 @@ public class CraftingManager implements ICraftingHandler
 		if (properties.CraftingDDKeysAllowed)
 		{
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemDDKey, 1),
-				"  z", " y ", "y  ", 'y', Item.ingotGold, 'z', Item.enderPearl);
+				"  z", " y ", "y  ", 'y', Items.gold_ingot, 'z', Items.ender_pearl);
 			GameRegistry.addRecipe(new ItemStack(mod_pocketDim.itemDDKey, 1),
 					"z", "z", 'z', mod_pocketDim.itemDDKey);
 		}
 		
 	}
 
-	@Override
-	public void onCrafting(EntityPlayer player, ItemStack item, IInventory craftMatrix)
+	@SubscribeEvent
+	public void onCrafting(PlayerEvent.ItemCraftedEvent event)
 	{
-		if(item.getItem() instanceof ItemDDKey)
+		if(event.crafting.getItem() instanceof ItemDDKey)
 		{
-			ItemDDKey keyItem = (ItemDDKey) item.getItem();
+			ItemDDKey keyItem = (ItemDDKey) event.crafting.getItem();
 			ItemStack topKey = null;
 			ItemStack bottomKey = null;
 			int topKeySlot = 0;
 			
-			for(int i = 0; i<craftMatrix.getSizeInventory();i++)
+			for(int i = 0; i<event.craftMatrix.getSizeInventory();i++)
 			{
-				ItemStack slot = craftMatrix.getStackInSlot(i);
+				ItemStack slot = event.craftMatrix.getStackInSlot(i);
 				if(slot!=null)
 				{
 					if(topKey==null)
@@ -149,16 +152,9 @@ public class CraftingManager implements ICraftingHandler
 				}
 			}
 			DDLock.addKeys(bottomKey, DDLock.getKeys(topKey));
-			item.setTagCompound(bottomKey.getTagCompound());
-			player.inventory.addItemStackToInventory(topKey);
+			event.crafting.setTagCompound(bottomKey.getTagCompound());
+			event.player.inventory.addItemStackToInventory(topKey);
 		}
-		
-	}
-
-	@Override
-	public void onSmelting(EntityPlayer player, ItemStack item)
-	{
-		// TODO Auto-generated method stub
 		
 	}
 	

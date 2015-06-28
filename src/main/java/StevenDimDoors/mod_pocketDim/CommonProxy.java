@@ -2,6 +2,7 @@ package StevenDimDoors.mod_pocketDim;
 import java.io.File;
 import java.io.FileOutputStream;
 import StevenDimDoors.mod_pocketDim.blocks.BaseDimDoor;
+import StevenDimDoors.mod_pocketDim.config.DDProperties;
 import StevenDimDoors.mod_pocketDim.tileentities.TileEntityDimDoor;
 
 import net.minecraft.entity.Entity;
@@ -12,6 +13,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.IGuiHandler;
+import net.minecraftforge.common.MinecraftForge;
+
 public class CommonProxy implements IGuiHandler
 {
     public static String BLOCK_PNG = "/PocketBlockTextures.png";
@@ -134,18 +137,19 @@ public class CommonProxy implements IGuiHandler
     }
 	public void updateDoorTE(BaseDimDoor door, World world, int x, int y, int z)
 	{
-		TileEntity tile = world.getBlockTileEntity(x, y, z);
+		TileEntity tile = world.getTileEntity(x, y, z);
 		if (tile instanceof TileEntityDimDoor)
 		{
 			int metadata = world.getBlockMetadata(x, y, z);
 			TileEntityDimDoor dimTile = (TileEntityDimDoor) tile;
 			dimTile.openOrClosed = door.isDoorOnRift(world, x, y, z)&&door.isUpperDoorBlock(metadata);
-			dimTile.orientation = door.getFullMetadata(world, x, y, z) & 7;
+			dimTile.orientation = door.func_150012_g(world, x,y,z) & 7;
 			dimTile.lockStatus = door.getLockStatus(world, x, y, z);
 		}
 	}
     
-    
-   
+    public void registerSidedHooks(DDProperties properties) {
+        new ServerPacketHandler();
+    }
     
 }

@@ -1,9 +1,6 @@
 package StevenDimDoors.mod_pocketDim.core;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +18,6 @@ import StevenDimDoors.mod_pocketDim.saving.PackedDimData;
 import StevenDimDoors.mod_pocketDim.util.Point4D;
 import StevenDimDoors.mod_pocketDim.watcher.ClientDimData;
 import StevenDimDoors.mod_pocketDim.watcher.ClientLinkData;
-import StevenDimDoors.mod_pocketDim.watcher.IUpdateSource;
 import StevenDimDoors.mod_pocketDim.watcher.IUpdateWatcher;
 import StevenDimDoors.mod_pocketDim.watcher.UpdateWatcherProxy;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -60,14 +56,15 @@ public class PocketManager
 
 	}
 
-	private static class ClientLinkWatcher implements IUpdateWatcher<ClientLinkData>
+	public static class ClientLinkWatcher implements IUpdateWatcher<ClientLinkData>
 	{
 		@Override
 		public void onCreated(ClientLinkData link)
 		{
-			Point4D source = link.point;
-			NewDimData dimension = getDimensionData(source.getDimension());
-			dimension.createLink(source, LinkType.CLIENT, 0, link.lock);
+            Point4D source = link.point;
+            NewDimData dimension = getDimensionData(source.getDimension());
+            if (dimension != null && dimension.getLink(source.getX(), source.getY(), source.getZ()) == null)
+			    dimension.createLink(source, LinkType.CLIENT, 0, link.lock);
 		}
 
 		@Override
@@ -75,7 +72,8 @@ public class PocketManager
 		{
 			Point4D source = link.point;
 			NewDimData dimension = getDimensionData(source.getDimension());
-			dimension.deleteLink(source.getX(), source.getY(), source.getZ());
+            if (dimension != null && dimension.getLink(source.getX(),source.getY(),source.getZ()) != null)
+			    dimension.deleteLink(source.getX(), source.getY(), source.getZ());
 		}
 
 		@Override
@@ -83,13 +81,14 @@ public class PocketManager
 		{
 			Point4D source = link.point;
 			NewDimData dimension = getDimensionData(source.getDimension());
-			DimLink dLink = dimension.getLink(source);
-			dLink.lock = link.lock;
-
+            if (dimension != null) {
+                DimLink dLink = dimension.getLink(source);
+                dLink.lock = link.lock;
+            }
 		}
 	}
 
-	private static class ClientDimWatcher implements IUpdateWatcher<ClientDimData>
+	public static class ClientDimWatcher implements IUpdateWatcher<ClientDimData>
 	{
 		@Override
 		public void onCreated(ClientDimData data)
@@ -508,8 +507,7 @@ public class PocketManager
 	 * 
 	 * @param dimensionID
 	 * @param parent
-	 * @param isPocket
-	 * @param isDungeon
+	 * @param type
 	 * @return
 	 */
 	private static NewDimData registerDimension(int dimensionID, InnerDimData parent, DimensionType type)
@@ -571,7 +569,10 @@ public class PocketManager
 			// unfortuantly. I send the dimdata to the client when they
 			// teleport.
 			// Steven
-			DimensionManager.registerDimension(dimensionID, mod_pocketDim.properties.PocketProviderID);
+            int providerID = mod_pocketDim.properties.PocketProviderID;
+            if (type == DimensionType.PERSONAL)
+                providerID = mod_pocketDim.properties.PersonalPocketProviderID;
+			DimensionManager.registerDimension(dimensionID,providerID);
 		}
 		return dimension;
 	}
@@ -627,6 +628,13 @@ public class PocketManager
 	{
 		return (ArrayList<NewDimData>) rootDimensions.clone();
 	}
+
+    public static void tryUnload() {
+        if (isConnected)
+            unload();
+        isLoading = false;
+        isLoaded = false;
+    }
 
 	public static void unload()
 	{
@@ -689,12 +697,7 @@ public class PocketManager
 		return linkWatcher.unregisterReceiver(watcher);
 	}
 
-	public static void getWatchers(IUpdateSource updateSource)
-	{
-		updateSource.registerWatchers(new ClientDimWatcher(), new ClientLinkWatcher());
-	}
-
-	public static void writePacket(DataOutputStream output) throws IOException
+	public static void writePacket(DataOutput output) throws IOException
 	{
 		// Write a very compact description of our dimensions and links to be
 		// sent to a client
@@ -716,7 +719,7 @@ public class PocketManager
 		}
 	}
 
-	public static void readPacket(DataInputStream input) throws IOException
+	public static void readPacket(DataInput input) throws IOException
 	{
 		// TODO- figure out why this is getting called so frequently
 		if (isLoaded)

@@ -1,10 +1,9 @@
 package StevenDimDoors.mod_pocketDim.util;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 import StevenDimDoors.mod_pocketDim.Point3D;
+import net.minecraft.nbt.NBTTagCompound;
 
 
 public final class Point4D implements Comparable<Point4D>
@@ -180,7 +179,16 @@ public final class Point4D implements Comparable<Point4D>
 		return "(" + x + ", " + y + ", " + z + ", " + dimension + ")";
 	}
 
-	public static void write(Point4D point, DataOutputStream stream) throws IOException
+    public static void writeToNBT(Point4D point, NBTTagCompound tag) {
+        if (point != null) {
+            tag.setInteger("X", point.x);
+            tag.setInteger("Y", point.y);
+            tag.setInteger("Z", point.z);
+            tag.setInteger("Dimension", point.dimension);
+        }
+    }
+
+	public static void write(Point4D point, DataOutput stream) throws IOException
 	{
 		stream.writeBoolean(point != null);
 		if (point != null)
@@ -192,7 +200,7 @@ public final class Point4D implements Comparable<Point4D>
 		}
 	}
 	
-	public static Point4D read(DataInputStream stream) throws IOException
+	public static Point4D read(DataInput stream) throws IOException
 	{
 		if (stream.readBoolean())
 		{
@@ -203,4 +211,8 @@ public final class Point4D implements Comparable<Point4D>
 			return null;
 		}
 	}
+
+    public static Point4D readFromNBT(NBTTagCompound tag) {
+        return new Point4D(tag.getInteger("X"), tag.getInteger("Y"), tag.getInteger("Z"), tag.getInteger("Dimension"));
+    }
 }

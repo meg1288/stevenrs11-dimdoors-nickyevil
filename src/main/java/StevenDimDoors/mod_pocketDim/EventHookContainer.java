@@ -1,18 +1,24 @@
 package StevenDimDoors.mod_pocketDim;
 
+import cpw.mods.fml.common.eventhandler.Event;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.ISound;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.audio.SoundManager;
 import net.minecraft.client.audio.SoundPoolEntry;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.client.event.sound.PlayBackgroundMusicEvent;
+import net.minecraftforge.client.event.sound.PlaySoundEvent17;
 import net.minecraftforge.client.event.sound.SoundLoadEvent;
-import net.minecraftforge.event.EventPriority;
-import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -59,7 +65,7 @@ public class EventHookContainer
 		this.regenerator = regenerator;
 	}
 
-	@ForgeSubscribe(priority = EventPriority.LOW)
+    @SubscribeEvent(priority = EventPriority.LOW)
 	public void onInitMapGen(InitMapGenEvent event)
 	{
 		// Replace the Nether fortress generator with our own only if any
@@ -73,36 +79,7 @@ public class EventHookContainer
 		 */
 	}
 
-	@SideOnly(Side.CLIENT)
-	@ForgeSubscribe
-	public void onSoundLoad(SoundLoadEvent event)
-	{
-		event.manager.addSound(mod_pocketDim.modid + ":doorLockRemoved.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":doorLocked.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":keyLock.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":keyUnlock.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":monk.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":crack.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":tearing.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":rift.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":riftStart.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":riftEnd.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":riftClose.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":riftDoor.ogg");
-		event.manager.addSound(mod_pocketDim.modid + ":creepy.ogg");
-	}
-
-	@SideOnly(Side.CLIENT)
-	@ForgeSubscribe
-	public void onSoundEffectResult(PlayBackgroundMusicEvent event)
-	{
-		if (FMLClientHandler.instance().getClient().thePlayer.worldObj.provider.dimensionId == mod_pocketDim.properties.LimboDimensionID)
-		{
-			this.playMusicForDim(FMLClientHandler.instance().getClient().thePlayer.worldObj);
-		}
-	}
-
-	@ForgeSubscribe
+	@SubscribeEvent
 	public void onPlayerEvent(PlayerInteractEvent event)
 	{
 		// Handle all door placement here
@@ -135,31 +112,26 @@ public class EventHookContainer
 		
 	}
 
-	@ForgeSubscribe
+	@SubscribeEvent
 	public void onWorldLoad(WorldEvent.Load event)
 	{
 		// We need to initialize PocketManager here because onServerAboutToStart
 		// fires before we can use DimensionManager and onServerStarting fires
 		// after the game tries to generate terrain. If a gateway tries to
 		// generate before PocketManager has initialized, we get a crash.
-		if (!PocketManager.isLoaded())
+		if (!event.world.isRemote && !PocketManager.isLoaded())
 		{
 			PocketManager.load();
 		}
-
-		if (event.world != null)
-		{
-			this.playMusicForDim(event.world);
-		}
 	}
 
-	@ForgeSubscribe
+	@SubscribeEvent
 	public void onPlayerFall(LivingFallEvent event)
 	{
 		event.setCanceled(event.entity.worldObj.provider.dimensionId == properties.LimboDimensionID);
 	}
 
-	@ForgeSubscribe(priority = EventPriority.HIGHEST)
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public boolean onDeathWithHighPriority(LivingDeathEvent event)
 	{
 		// Teleport the entity to Limbo if it's a player in a pocket dimension
@@ -175,7 +147,7 @@ public class EventHookContainer
 			if(entity.worldObj.provider instanceof PocketProvider)
 			{
 				EntityPlayer player = (EntityPlayer) entity;
-				mod_pocketDim.deathTracker.addUsername(player.username);
+				mod_pocketDim.deathTracker.addUsername(player.getGameProfile().getName());
 				revivePlayerInLimbo(player);
 				event.setCanceled(true);
 				return false;
@@ -192,7 +164,7 @@ public class EventHookContainer
 		return true;
 	}
 
-	@ForgeSubscribe(priority = EventPriority.LOWEST)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public boolean onDeathWithLowPriority(LivingDeathEvent event)
 	{
 		// This low-priority handler gives mods a chance to save a player from
@@ -206,11 +178,11 @@ public class EventHookContainer
 		if (entity instanceof EntityPlayer && isValidSourceForLimbo(entity.worldObj.provider))
 		{
 			EntityPlayer player = (EntityPlayer) entity;
-			mod_pocketDim.deathTracker.addUsername(player.username);
+			mod_pocketDim.deathTracker.addUsername(player.getGameProfile().getName());
 
 			if (properties.LimboEnabled && !properties.LimboReturnsInventoryEnabled)
 			{
-				player.inventory.clearInventory(-1, -1);
+				player.inventory.clearInventory(null, -1);
 				revivePlayerInLimbo(player);
 				event.setCanceled(true);
 			}
@@ -240,7 +212,7 @@ public class EventHookContainer
 		DDTeleporter.teleportEntity(player, destination, false);
 	}
 
-	@ForgeSubscribe
+	@SubscribeEvent
 	public void onWorldSave(WorldEvent.Save event)
 	{
 		if (event.world.provider.dimensionId == 0)
@@ -254,7 +226,7 @@ public class EventHookContainer
 		}
 	}
 	
-	@ForgeSubscribe
+	@SubscribeEvent
 	public void onChunkLoad(ChunkEvent.Load event)
 	{
 		// Schedule rift regeneration for any links located in this chunk.
@@ -269,35 +241,6 @@ public class EventHookContainer
 			for (DimLink link : dimension.getChunkLinks(chunk.xPosition, chunk.zPosition))
 			{
 				regenerator.scheduleSlowRegeneration(link);
-			}
-		}
-	}
-
-	public void playMusicForDim(World world)
-	{
-		if (world.isRemote)
-		{
-			SoundManager sndManager = FMLClientHandler.instance().getClient().sndManager;
-
-			// SenseiKiwi: I've added the following check as a quick fix for a
-			// reported crash. This needs to work without a hitch or we have to
-			// stop trying to replace the background music...
-			if (sndManager != null && sndManager.sndSystem != null)
-			{
-				if (world.provider instanceof LimboProvider)
-				{
-					sndManager.sndSystem.stop("BgMusic");
-					SoundPoolEntry soundPoolEntry = sndManager.soundPoolSounds.getRandomSoundFromSoundPool(mod_pocketDim.modid + ":creepy");
-					if (soundPoolEntry != null)
-					{
-						sndManager.sndSystem.backgroundMusic("LimboMusic", soundPoolEntry.getSoundUrl(), soundPoolEntry.getSoundName(), false);
-						sndManager.sndSystem.play("LimboMusic");
-					}
-				}
-				else if (!(world.provider instanceof LimboProvider))
-				{
-					sndManager.sndSystem.stop("LimboMusic");
-				}
 			}
 		}
 	}

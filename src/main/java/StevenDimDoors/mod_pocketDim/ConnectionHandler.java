@@ -1,66 +1,56 @@
 package StevenDimDoors.mod_pocketDim;
 
-import net.minecraft.network.INetworkManager;
-import net.minecraft.network.NetLoginHandler;
-import net.minecraft.network.packet.NetHandler;
-import net.minecraft.network.packet.Packet1Login;
-import net.minecraft.network.packet.Packet250CustomPayload;
+import StevenDimDoors.mod_pocketDim.network.ClientJoinPacket;
+import StevenDimDoors.mod_pocketDim.network.DimDoorsNetwork;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
+import cpw.mods.fml.common.network.FMLEmbeddedChannel;
+import cpw.mods.fml.common.network.FMLNetworkEvent;
+import cpw.mods.fml.common.network.FMLOutboundHandler;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.relauncher.Side;
+import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.network.Packet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.common.network.ForgePacket;
-import net.minecraftforge.common.network.packet.DimensionRegisterPacket;
 import StevenDimDoors.mod_pocketDim.core.NewDimData;
 import StevenDimDoors.mod_pocketDim.core.PocketManager;
 import StevenDimDoors.mod_pocketDim.watcher.ClientDimData;
-import cpw.mods.fml.common.network.IConnectionHandler;
-import cpw.mods.fml.common.network.Player;
+import net.minecraftforge.common.network.ForgeMessage;
+import net.minecraftforge.common.network.ForgeNetworkHandler;
 
-public class ConnectionHandler implements IConnectionHandler
+public class ConnectionHandler
 {
-	@Override
-	public String connectionReceived(NetLoginHandler netHandler, INetworkManager manager)
+    @SubscribeEvent
+    public void serverConnectionFromClientEvent(FMLNetworkEvent.ServerConnectionFromClientEvent event) {
+        if (FMLCommonHandler.instance().getSide() == Side.SERVER) {
+            NetHandlerPlayServer server = ((NetHandlerPlayServer)event.handler);
+            FMLEmbeddedChannel channel =  NetworkRegistry.INSTANCE.getChannel("FORGE", Side.SERVER);
+            for (NewDimData data : PocketManager.getDimensions()) {
+                try {
+                    if (data.isPocketDimension() || data.id() == mod_pocketDim.properties.LimboDimensionID) {
+                        channel.writeOutbound(new ForgeMessage.DimensionRegisterMessage(data.id(), DimensionManager.getProviderType(data.id())));
+                    }
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+	@SubscribeEvent
+	public void connectionClosed(FMLNetworkEvent.ClientDisconnectionFromServerEvent event)
 	{
-		for(NewDimData data : PocketManager.getDimensions())
-		{
-			try
-			{
-				if(data.isPocketDimension()||data.id()==mod_pocketDim.properties.LimboDimensionID)
-				{
-					Packet250CustomPayload[] pkt = ForgePacket.makePacketSet(new DimensionRegisterPacket(data.id(), DimensionManager.getProviderType(data.id())));
-					manager.addToSendQueue(pkt[0]);
-				}
-			}
-			catch(Exception E)
-			{
-				E.printStackTrace();
-			}
-		}
-		return null;
+        PocketManager.tryUnload();
 	}
 
-	@Override
-	public void connectionOpened(NetHandler netClientHandler, String server, int port, INetworkManager manager) { }
-	
-	@Override
-	public void connectionOpened(NetHandler netClientHandler,MinecraftServer server, INetworkManager manager) { }
-
-	@Override
-	public void connectionClosed(INetworkManager manager) 
+	@SubscribeEvent
+	public void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event)
 	{
-		if(PocketManager.isConnected)
-		{
-			PocketManager.unload();
-		}
-	}
-
-	@Override
-	public void clientLoggedIn(NetHandler clientHandler, INetworkManager manager, Packet1Login login) { }
-
-	@Override
-	public void playerLoggedIn(Player player, NetHandler netHandler, INetworkManager manager)
-	{
-		// Hax... please don't do this! >_< 
-		PocketManager.getDimwatcher().onCreated(new ClientDimData(PocketManager.createDimensionDataDangerously(0)));
+		// Hax... please don't do this! >_<
+        DimDoorsNetwork.sendToPlayer(new ClientJoinPacket(), event.player);
 		
 	}
 }

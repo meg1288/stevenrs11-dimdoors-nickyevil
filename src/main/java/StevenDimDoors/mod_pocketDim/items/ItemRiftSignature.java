@@ -2,12 +2,13 @@ package StevenDimDoors.mod_pocketDim.items;
 
 import java.util.List;
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import StevenDimDoors.mod_pocketDim.mod_pocketDim;
@@ -22,9 +23,9 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemRiftSignature extends Item
 {
-	public ItemRiftSignature(int itemID)
+	public ItemRiftSignature()
 	{
-		super(itemID);
+		super();
 		this.setMaxStackSize(1);
 		this.setMaxDamage(0);
 		this.hasSubtypes = true;
@@ -40,7 +41,7 @@ public class ItemRiftSignature extends Item
 	}
 
 	@Override
-	public void registerIcons(IconRegister par1IconRegister)
+	public void registerIcons(IIconRegister par1IconRegister)
 	{
 		this.itemIcon = par1IconRegister.registerIcon(mod_pocketDim.modid + ":" + this.getUnlocalizedName().replace("item.", ""));
 	}
@@ -118,13 +119,11 @@ public class ItemRiftSignature extends Item
 		Point4DOrientation source = getSource(par1ItemStack);
 		if (source != null)
 		{
-			par3List.add("Leads to (" + source.getX() + ", " + source.getY() + ", " + source.getZ() + ") at dimension #" + source.getDimension());
+			par3List.add(StatCollector.translateToLocalFormatted("info.riftSignature.bound", source.getX(), source.getY(), source.getZ(), source.getDimension()));
 		}
 		else
 		{
-			par3List.add("First click stores a location;");
-			par3List.add("second click creates a pair of");
-			par3List.add("rifts linking the two locations.");
+            mod_pocketDim.translateAndAdd("info.riftSignature.unbound", par3List);
 		}
 	}
 
@@ -139,12 +138,12 @@ public class ItemRiftSignature extends Item
 	public static int adjustYForSpecialBlocks(World world, int x, int y, int z)
 	{
 		int targetY = y - 2; // Get the block the player actually clicked on
-		Block block = Block.blocksList[world.getBlockId(x, targetY, z)];
+		Block block = world.getBlock(x, targetY, z);
 		if (block == null)
 		{
 			return targetY + 2;
 		}
-		if (block.isBlockReplaceable(world, x, targetY, z))
+		if (block.isReplaceable(world, x, targetY, z))
 		{
 			return targetY + 1; // Move block placement down (-2+1) one so its directly over things like snow
 		}

@@ -31,7 +31,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.storage.MapCoord;
 import net.minecraft.world.storage.MapData;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -50,8 +49,8 @@ public class RenderDimDoor extends TileEntitySpecialRenderer
 {
 	private FloatBuffer buffer = GLAllocation.createDirectFloatBuffer(16);
 	private ResourceLocation warpPath= new ResourceLocation(mod_pocketDim.modid + ":textures/other/WARP.png");
-	private ResourceLocation keyPath= new ResourceLocation(mod_pocketDim.modid + ":textures/other/Keyhole.png");
-	private ResourceLocation KeyholeLight= new ResourceLocation(mod_pocketDim.modid + ":textures/other/KeyholeLight.png");
+	private ResourceLocation keyPath= new ResourceLocation(mod_pocketDim.modid + ":textures/other/keyhole.png");
+	private ResourceLocation KeyholeLight= new ResourceLocation(mod_pocketDim.modid + ":textures/other/keyholeLight.png");
 	private ResourceLocation keyOutline= new ResourceLocation(mod_pocketDim.modid + ":textures/other/keyOutline.png");
 	private ResourceLocation keyOutlineLight= new ResourceLocation(mod_pocketDim.modid + ":textures/other/keyOutlineLight.png");
 
@@ -352,7 +351,7 @@ public class RenderDimDoor extends TileEntitySpecialRenderer
 			TileEntityDimDoor tile = (TileEntityDimDoor) par1TileEntity;
 			try
 			{
-				mod_pocketDim.dimensionalDoor.updateAttachedTile(tile.worldObj,
+				mod_pocketDim.dimensionalDoor.updateAttachedTile(tile.getWorldObj(),
 						tile.xCoord, tile.yCoord, tile.zCoord);
 			}
 			catch (Exception e)

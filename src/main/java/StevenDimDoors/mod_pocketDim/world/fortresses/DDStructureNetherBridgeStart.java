@@ -6,13 +6,13 @@ import java.util.Random;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.structure.ComponentNetherBridgeThrone;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureComponent;
-import net.minecraft.world.gen.structure.StructureNetherBridgeStart;
 import StevenDimDoors.mod_pocketDim.config.DDProperties;
+import net.minecraft.world.gen.structure.StructureNetherBridgePieces;
+import net.minecraft.world.gen.structure.StructureStart;
 
-public class DDStructureNetherBridgeStart extends StructureNetherBridgeStart
+public class DDStructureNetherBridgeStart extends StructureStart
 {
 	public static final int MAX_GATEWAY_GENERATION_CHANCE = 100;
 	
@@ -26,26 +26,26 @@ public class DDStructureNetherBridgeStart extends StructureNetherBridgeStart
 	public DDStructureNetherBridgeStart(World world, Random random, int chunkX, int chunkZ, DDProperties properties)
     {
 		// StructureNetherBridgeStart handles designing the fortress for us
-    	super(world, random, chunkX, chunkZ);
+    	super(chunkX, chunkZ);
     	
     	Iterator componentIterator;
     	StructureComponent component;
     	StructureBoundingBox bounds;
-    	ArrayList<ComponentNetherBridgeThrone> spawnerRooms;
+    	ArrayList<StructureNetherBridgePieces.Throne> spawnerRooms;
     	hasGateway = false;
     	
     	// Randomly decide whether to build a gateway in this fortress
     	if (random.nextInt(MAX_GATEWAY_GENERATION_CHANCE) < properties.FortressGatewayGenerationChance)
     	{
     		// Search for all the blaze spawners in a fortress
-    		spawnerRooms = new ArrayList<ComponentNetherBridgeThrone>();
+    		spawnerRooms = new ArrayList<StructureNetherBridgePieces.Throne>();
     		componentIterator = this.components.iterator();
     		while (componentIterator.hasNext())
     		{
     			component = (StructureComponent) componentIterator.next();
-    			if (component instanceof ComponentNetherBridgeThrone)
+    			if (component instanceof StructureNetherBridgePieces.Throne)
     			{
-    				spawnerRooms.add((ComponentNetherBridgeThrone) component);
+    				spawnerRooms.add((StructureNetherBridgePieces.Throne) component);
     			}
     		}
     		
@@ -78,7 +78,7 @@ public class DDStructureNetherBridgeStart extends StructureNetherBridgeStart
 			dimensionalTag.setInteger("GatewayMinY", this.minY);
 			dimensionalTag.setInteger("GatewayMinZ", this.minZ);
 		}
-		fortressTag.setCompoundTag("DimensionalDoors", dimensionalTag);
+		fortressTag.setTag("DimensionalDoors", dimensionalTag);
 		
 		return fortressTag;
     }

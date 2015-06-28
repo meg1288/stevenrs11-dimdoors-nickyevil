@@ -1,11 +1,14 @@
 package StevenDimDoors.mod_pocketDim.items;
 
 import java.util.List;
-import net.minecraft.client.renderer.texture.IconRegister;
+
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import StevenDimDoors.mod_pocketDim.mod_pocketDim;
@@ -18,13 +21,13 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class ItemStabilizedRiftSignature extends ItemRiftSignature
 {
-	public ItemStabilizedRiftSignature(int itemID)
+	public ItemStabilizedRiftSignature()
 	{
-		super(itemID);
+		super();
 	}
 
 	@Override
-	public void registerIcons(IconRegister par1IconRegister)
+	public void registerIcons(IIconRegister par1IconRegister)
 	{
 		this.itemIcon = par1IconRegister.registerIcon(mod_pocketDim.modid + ":" + this.getUnlocalizedName().replace("item.", ""));
 	}
@@ -74,7 +77,7 @@ public class ItemStabilizedRiftSignature extends ItemRiftSignature
 				// Check if the player is in creative mode,
 				// or if the player can pay with an Ender Pearl to create a rift.
 				if (!player.capabilities.isCreativeMode &&
-						!player.inventory.consumeInventoryItem(Item.enderPearl.itemID))
+						!player.inventory.consumeInventoryItem(Items.ender_pearl))
 				{
 					mod_pocketDim.sendChat(player, "You don't have any Ender Pearls!");
 					// I won't do this, but this is the chance to localize chat 
@@ -167,13 +170,12 @@ public class ItemStabilizedRiftSignature extends ItemRiftSignature
 		Point4DOrientation source = getSource(par1ItemStack);
 		if (source != null)
 		{
-			par3List.add("Leads to (" + source.getX() + ", " + source.getY() + ", " + source.getZ() + ") at dimension #" + source.getDimension());
+            String text = StatCollector.translateToLocalFormatted("info.riftSignature.bound", source.getX(), source.getY(), source.getZ(), source.getDimension());
+			par3List.add(text);
 		}
 		else
 		{
-			par3List.add("First click stores a location,");
-			par3List.add("other clicks create rifts linking");
-			par3List.add("the first and last locations together.");
+			mod_pocketDim.translateAndAdd("info.riftSignature.stable", par3List);
 		}
 	}
 }

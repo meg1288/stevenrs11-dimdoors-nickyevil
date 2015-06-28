@@ -2,24 +2,20 @@ package StevenDimDoors.mod_pocketDim.tileentities;
 
 import java.util.Random;
 
+import StevenDimDoors.mod_pocketDim.network.CreateLinkPacket;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet;
 import StevenDimDoors.mod_pocketDim.ServerPacketHandler;
 import StevenDimDoors.mod_pocketDim.mod_pocketDim;
 import StevenDimDoors.mod_pocketDim.core.DimLink;
 import StevenDimDoors.mod_pocketDim.core.PocketManager;
 
 import StevenDimDoors.mod_pocketDim.watcher.ClientLinkData;
-import net.minecraft.block.Block;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.Packet130UpdateSign;
-import net.minecraft.network.packet.Packet250CustomPayload;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 
 
-
-public class TileEntityDimDoor extends DDTileEntityBase 
+public class TileEntityDimDoor extends DDTileEntityBase
 {
 	public boolean openOrClosed;
 	public int orientation;
@@ -37,12 +33,28 @@ public class TileEntityDimDoor extends DDTileEntityBase
 	@Override
 	 public Packet getDescriptionPacket()
 	 {
+         NBTTagCompound tag = new NBTTagCompound();
+         writeToNBT(tag);
 		 if(PocketManager.getLink(xCoord, yCoord, zCoord, worldObj)!=null)
 		 {
-			 return ServerPacketHandler.createLinkPacket(new ClientLinkData(PocketManager.getLink(xCoord, yCoord, zCoord, worldObj)));
+             ClientLinkData linkData = new ClientLinkData(PocketManager.getLink(xCoord, yCoord, zCoord, worldObj));
+             NBTTagCompound link = new NBTTagCompound();
+             linkData.writeToNBT(link);
+             tag.setTag("Link", link);
 		 }
-		 return null;
+         return new S35PacketUpdateTileEntity(this.xCoord, this.yCoord, this.zCoord, 1, tag);
 	 }
+
+    @Override
+    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
+        NBTTagCompound tag = pkt.func_148857_g();
+        readFromNBT(tag);
+
+        if (tag.hasKey("Link")) {
+            ClientLinkData linkData = ClientLinkData.readFromNBT(tag.getCompoundTag("Link"));
+            PocketManager.getLinkWatcher().onCreated(linkData);
+        }
+    }
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbt)

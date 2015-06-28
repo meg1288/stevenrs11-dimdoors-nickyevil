@@ -2,12 +2,15 @@ package StevenDimDoors.mod_pocketDim.world;
 
 import java.util.Random;
 
+import StevenDimDoors.mod_pocketDim.mod_pocketDim;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
+import net.minecraft.init.Blocks;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import StevenDimDoors.mod_pocketDim.config.DDProperties;
+import net.minecraftforge.common.ForgeChunkManager;
 
 /**
  * Provides methods for applying Limbo decay. Limbo decay refers to the effect that most blocks placed in Limbo
@@ -19,38 +22,50 @@ public class LimboDecay {
 	private static final int DECAY_SPREAD_CHANCE = 50;
 	private static final int CHUNK_SIZE = 16;
 	private static final int SECTION_HEIGHT = 16;
-	
+
 	//Provides a reversed list of the block IDs that blocks cycle through during decay.
-	private final int[] decaySequence;
+	private Block[] decaySequence = null;
 	
 	private final Random random;
 	private final DDProperties properties;
-	private final int[] blocksImmuneToDecay;
+	private Block[] blocksImmuneToDecay = null;
 	
 	public LimboDecay(DDProperties properties)
 	{
-		decaySequence = new int[] {
-			properties.LimboBlockID,
-			Block.gravel.blockID,
-			Block.cobblestone.blockID,
-			Block.stone.blockID
-		};
-		
-		blocksImmuneToDecay = new int[] {
-			properties.LimboBlockID,
-			properties.PermaFabricBlockID,
-			properties.TransientDoorID,
-			properties.DimensionalDoorID,
-			properties.WarpDoorID,
-			properties.RiftBlockID,
-			properties.UnstableDoorID,
-			properties.GoldenDoorID,
-			properties.GoldenDimensionalDoorID
-		};
-		
 		this.properties = properties;
 		this.random = new Random();
 	}
+
+    public Block[] getDecaySequence() {
+        if (decaySequence == null) {
+            decaySequence = new Block[] {
+                    mod_pocketDim.blockLimbo,
+                    Blocks.gravel,
+                    Blocks.cobblestone,
+                    Blocks.stone
+            };
+        }
+
+        return decaySequence;
+    }
+
+    public Block[] getBlocksImmuneToDecay() {
+        if (blocksImmuneToDecay == null) {
+            blocksImmuneToDecay = new Block[] {
+                    mod_pocketDim.blockLimbo,
+                    mod_pocketDim.blockDimWallPerm,
+                    mod_pocketDim.transientDoor,
+                    mod_pocketDim.dimensionalDoor,
+                    mod_pocketDim.warpDoor,
+                    mod_pocketDim.blockRift,
+                    mod_pocketDim.unstableDoor,
+                    mod_pocketDim.goldenDoor,
+                    mod_pocketDim.goldenDimensionalDoor
+            };
+        }
+
+        return blocksImmuneToDecay;
+    }
 
 	/**
 	 * Checks the blocks orthogonally around a given location (presumably the location of an Unraveled Fabric block)
@@ -90,7 +105,7 @@ public class LimboDecay {
 			
 			//Obtain the coordinates of active chunks in Limbo. For each section of each chunk,
 			//pick a random block and try to apply fast decay.
-			for (Object coordObject : limbo.activeChunkSet)
+			for (Object coordObject : ForgeChunkManager.getPersistentChunksFor(limbo).keySet())
 			{
 				ChunkCoordIntPair chunkCoord = (ChunkCoordIntPair) coordObject;
 				
@@ -112,10 +127,10 @@ public class LimboDecay {
 	 */
 	private boolean decayBlockFast(World world, int x, int y, int z)
 	{
-		int blockID = world.getBlockId(x, y, z);
-		if (canDecayBlock(blockID))
+		Block block = world.getBlock(x, y, z);
+		if (canDecayBlock(block, world, x, y, z))
 		{
-			world.setBlock(x, y, z, properties.LimboBlockID);
+			world.setBlock(x, y, z, mod_pocketDim.blockLimbo);
 			return true;
 		}
 		return false;
@@ -127,14 +142,14 @@ public class LimboDecay {
 	private boolean decayBlock(World world, int x, int y, int z)
 	{
 		int index;
-		int blockID = world.getBlockId(x, y, z);
-		if (canDecayBlock(blockID))
+		Block block = world.getBlock(x, y, z);
+		if (canDecayBlock(block, world, x, y, z))
 		{
 			//Loop over the block IDs that decay can go through.
 			//Find an index matching the current blockID, if any.
-			for (index = 0; index < decaySequence.length; index++)
+			for (index = 0; index < getDecaySequence().length; index++)
 			{
-				if (decaySequence[index] == blockID)
+				if (getDecaySequence()[index] == block)
 				{
 					break;
 				}
@@ -146,7 +161,7 @@ public class LimboDecay {
 			//last ID in the array, which is the first one that all blocks decay into.
 			//We assume that Unraveled Fabric is NOT decayable. Otherwise, this will go out of bounds!
 			
-			world.setBlock(x, y, z, decaySequence[index - 1]);
+			world.setBlock(x, y, z, getDecaySequence()[index - 1]);
 			return true;
 		}
 		return false;
@@ -155,22 +170,21 @@ public class LimboDecay {
 	/**
 	 * Checks if a block can decay. We will not decay air, certain DD blocks, or containers.
 	 */
-	private boolean canDecayBlock(int blockID)
+	private boolean canDecayBlock(Block block, World world, int x, int y, int z)
 	{
-		if (blockID == 0)
+		if (block.isAir(world, x, y, z))
 		{
 			return false;
 		}
 		
-		for (int k = 0; k < blocksImmuneToDecay.length; k++)
+		for (int k = 0; k < getBlocksImmuneToDecay().length; k++)
 		{
-			if (blockID == blocksImmuneToDecay[k])
+			if (block == getBlocksImmuneToDecay()[k])
 			{
 				return false;
 			}
 		}
-		
-		Block block = Block.blocksList[blockID];
+
 		return (block == null || !(block instanceof BlockContainer));
 	}
 }
